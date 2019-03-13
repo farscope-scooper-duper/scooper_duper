@@ -3,7 +3,8 @@
 import rospy
 from std_msgs.msg import String,Bool,Int8
 from geometry_msgs.msg import Transform,Vector3,Quaternion
-#from scooper-duper.msg import ItemList
+from scooper_duper.msg import *
+#ItemList
 def c_loop_vision_callback(data):
 	rospy.loginfo("Control loop recieved data from topic items_in_view");
 	rospy.loginfo(data);
@@ -17,7 +18,7 @@ def spoofer():
     suction_state_pub = rospy.Publisher('suction_state', Bool, queue_size=10)
     EE_pose_pub = rospy.Publisher('t_EE_pose', Transform, queue_size=10)
 
-    #rospy.Subscriber("items_in_view", ItemList , c_loop_vision_callback)
+    rospy.Subscriber("items_in_view", ItemList , c_loop_vision_callback)
     rospy.Subscriber("grip_sensor", Int8 , c_loop_gripsensor_callback)
     rate = rospy.Rate(0.5) # 10hz
 

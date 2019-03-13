@@ -2,7 +2,7 @@
 
 import rospy
 from std_msgs.msg import String,Bool
-from scooper-duper.msg import ItemList, ItemMsg
+from scooper_duper.msg import ItemList, ItemMsg
 
 item1 = ItemMsg()
 item2 = ItemMsg()
@@ -19,10 +19,11 @@ def spoofer():
     rospy.init_node('vision_spoof', anonymous=True)
     
     rate = rospy.Rate(0.5) # 10hz
-    
+    item_list = ItemList()
+    item_list.items = (item1,item2)
     while not rospy.is_shutdown():
 
-        
+        items_in_view_pub.publish(item_list)
         rospy.loginfo("Gripper and vacuum toggled");
 
         
