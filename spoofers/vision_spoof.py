@@ -24,7 +24,7 @@ def spoofer():
     while not rospy.is_shutdown():
 
         items_in_view_pub.publish(item_list)
-        rospy.loginfo("Gripper and vacuum toggled");
+        rospy.loginfo("Vision info published");
 
         
         rate.sleep()
