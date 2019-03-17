@@ -29,7 +29,7 @@ class FixedTFBroadcaster:
            
 
             theta1 = np.radians(0.0)
-            theta2 = np.radians(0.0)
+            theta2 = np.radians(90.0)
             theta3 = np.radians(0.0)
             theta4 = np.radians(0.0)
             theta5 = np.radians(0.0)
