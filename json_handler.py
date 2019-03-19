@@ -4,7 +4,7 @@
 # - There's no reordering of the data structure from the .json, so it might be inefficient/annoying to work with.
 # - It's going to give a grumble in the unlikely case that there's an attempt to add an item to a bin that had nothing in to start with (or rather, that didn't exist in the .json).
 # - No assumptions are made about what is a target item and what isn't or how it might change when things are moved.
-
+# - (This is a design quirk) Failing in the sense of dropping the item on the floor is a success to the work order.
 
 #Needs to be able to:
 #`Open and read a .json file
@@ -19,8 +19,8 @@
 #`Write to a new .json file
 
 #Later still, we will want to:
-#Keep a priority queue of target items
-#Manage the queue so that items are added/removed/pushed back
+#`Keep a priority queue of target items
+#`Manage the queue so that items are added/removed/pushed back
 #Curate the queue according to some measure of pickability
 
 import json
@@ -31,9 +31,9 @@ class WorldModel:
     def __init__(self, input_file_name): #No checks for if this file exists or not
         with open(input_file_name) as input_file: #This is currently read only
             self.json_data = json.load(input_file)
-        print(self.json_data)
 
-        self.work_order = self.json_data['work_order']
+        self.work_order = self.json_data['work_order'] 
+        self.pick_list = self.target_items() #As read, currently, later may be ordered by pickability.
         self.bin_contents = self.json_data['bin_contents']
 
         #If the pick file doesn't have any items in the tote (or on the floor), we have to make these ourselves.
@@ -48,6 +48,7 @@ class WorldModel:
         '''Return the bins in which the item referenced can be found.'''
         return [b for b in self.bin_contents.keys() if item_reference in self.bin_contents[b]]
 
+    #Possibly deprecated
     def target_items(self):
         '''Provides a full list of the target items.'''
         return [i['item'] for i in self.work_order]
@@ -66,3 +67,21 @@ class WorldModel:
         json_data = {'work_order': self.work_order, 'bin_contents': self.bin_contents}
         with open(output_file_name, 'w') as output_file:
             json.dump(json_data, output_file, sort_keys=True, indent=4)
+
+    def update_work_order(self):
+        '''Updates the work order with the currently-believed position for each of the items.'''
+        self.work_order = [{'bin':self.bins_of(i), 'item':i} for i in self.pick_list]
+
+    def pick_success(self, item_ref):
+        ''' '''
+        if item_ref in self.pick_list:
+            self.pick_list.remove(item_ref)
+            self.update_work_order()
+
+    def pick_failure(self, item_ref):
+        '''The item referenced is removed from its position in the work order and moved to the back of the work order list.'''
+        if item_ref in self.pick_list:
+            self.pick_list.remove(item_ref)
+            self.pick_list.append(item_ref)
+            self.update_work_order()
+        
