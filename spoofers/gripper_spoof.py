@@ -13,21 +13,14 @@ def spoofer():
 
     rospy.Subscriber('finger_pos', Bool, gripper_c_loop_callback)
 
-    rate = rospy.Rate(0.5)
+    rate = rospy.Rate(1.1)
 
     state = 0
 
     while not rospy.is_shutdown():
-        if (state==0):
-          grip_sensor_pub.publish(55)
-        elif (state == 1):
-          grip_sensor_pub.publish(155)
-        elif (state == 2):
-          grip_sensor_pub.publish(255)
-        elif (state ==3):
-          grip_sensor_pub.publish(100)
+        grip_sensor_pub.publish(state)
         
-        state = state +1
+        state = state + 1
         if state >= 4:
           state = 0
         rospy.loginfo("Grip sensor state output to grip_sensor")

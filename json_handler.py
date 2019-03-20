@@ -39,6 +39,12 @@ class WorldModel:
         #If the pick file doesn't have any items in the tote (or on the floor), we have to make these ourselves.
         self.bin_contents.setdefault('tote', [])
         self.bin_contents.setdefault('floor', [])
+    
+        self.verbosity = True
+
+    def set_verbosity(self, v):
+        '''Sets whether the world model should output its operations as it goes.'''        
+        self.verbosity = v
 
     def items_in(self, bin_reference):
         '''Return a list of the items in the bin with the given reference.'''
@@ -56,31 +62,43 @@ class WorldModel:
     def add_item_to_bin(self, item_ref, bin_ref):
         '''Adds the specified item to the given bin.'''
         self.bin_contents[bin_ref].append(item_ref)
+        if (self.verbosity == True):
+            print("Added %s to %s." % (item_ref, bin_ref))
 
     def remove_item_from_bin(self, item_ref, bin_ref):
         '''Removes one instance of the specified item from the given bin if it exists.'''
         if item_ref in self.bin_contents[bin_ref]:
             self.bin_contents[bin_ref].remove(item_ref)
+            if (self.verbosity == True):
+                print("Removed %s from %s." % (item_ref, bin_ref))
 
     def output_to_file(self, output_file_name):
         '''Writes the current state to the given output file.'''
         json_data = {'work_order': self.work_order, 'bin_contents': self.bin_contents}
         with open(output_file_name, 'w') as output_file:
             json.dump(json_data, output_file, sort_keys=True, indent=4)
+            if (self.verbosity == True):
+                print("Output pick data to %s." % output_file_name)
 
     def update_work_order(self):
         '''Updates the work order with the currently-believed position for each of the items.'''
+        if (self.verbosity == True):
+            print("Updated the work order.")
         self.work_order = [{'bin':self.bins_of(i), 'item':i} for i in self.pick_list]
 
     def pick_success(self, item_ref):
-        ''' '''
+        '''The item referenced is removed from the work order '''
         if item_ref in self.pick_list:
+            if (self.verbosity == True):
+                print("Pick success: removed %s from the pick queue." % item_ref)
             self.pick_list.remove(item_ref)
             self.update_work_order()
 
     def pick_failure(self, item_ref):
         '''The item referenced is removed from its position in the work order and moved to the back of the work order list.'''
         if item_ref in self.pick_list:
+            if (self.verbosity == True):
+                print("Pick failure: moved %s to the back of the pick queue." % item_ref)
             self.pick_list.remove(item_ref)
             self.pick_list.append(item_ref)
             self.update_work_order()
