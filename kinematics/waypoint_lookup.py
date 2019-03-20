@@ -1,7 +1,7 @@
-from geometry_msgs.msg import Pose
+from geometry_msgs.msg import Pose,PoseStamped
 import tf
 import math
-
+import rospy
 
 def get_waypoint_pose(waypoint_id):
     move_plane_y = -0.875
@@ -9,7 +9,8 @@ def get_waypoint_pose(waypoint_id):
     bin_width = 0.25
     bin_left = bin_centre - bin_width
     bin_right = bin_centre + bin_width
-
+    rospy.init_node('move_group_python_interface_tutorial',
+                        anonymous=True)
     shelf1_z = 0.483
     shelf2_z = shelf1_z - 0.32
     shelf3_z = shelf2_z - 0.32
@@ -30,7 +31,7 @@ def get_waypoint_pose(waypoint_id):
     tote_pose.position.y = move_plane_y
     tote_pose.position.z = 0.203
     q = tf.transformations.quaternion_from_euler(
-       float(0),float(-math.pi/2),float(0))
+       float(0),float(-math.pi/2),float(-math.pi/2))
     #tote_pose.orientation.x = 0#q[0];
     #tote_pose.orientation.y = 0#q[1];
     #tote_pose.orientation.z = 0.688#q[2];
@@ -40,7 +41,7 @@ def get_waypoint_pose(waypoint_id):
     tote_pose.orientation.z = q[2];
     tote_pose.orientation.w = q[3];
     if waypoint_id == "tote":
-        return tote_pose
+        pose = tote_pose
     else: #bin pose
         bin_waypoint = Pose()
         binpos = bin_waypoints[waypoint_id]
@@ -53,5 +54,10 @@ def get_waypoint_pose(waypoint_id):
         bin_waypoint.orientation.y = q[1];
         bin_waypoint.orientation.z = q[2];
         bin_waypoint.orientation.w = q[3];
-        return bin_waypoint
+        pose = bin_waypoint
+    
+    pose_stamped = PoseStamped()
+    pose_stamped.header.frame_id = "/base"
+    pose_stamped.pose = pose
+    return pose_stamped
 

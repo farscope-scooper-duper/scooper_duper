@@ -92,6 +92,8 @@ class motion_executor():
         print(self.planning_frame)
         self.build_scene((0,-1.3,3*0.32))
         self.clear_plan()
+	self.transformer = tf.TransformListener()
+	
     def build_scene(self,shelf_pos):
         
         #publish shelf frame that is static, later make variable for calibration
@@ -99,7 +101,7 @@ class motion_executor():
         static_transformStamped = geometry_msgs.msg.TransformStamped()
 
         static_transformStamped.header.stamp = rospy.Time.now()
-        static_transformStamped.header.frame_id = "world"
+        static_transformStamped.header.frame_id = "base"
         static_transformStamped.child_frame_id = "shelves"
 
         static_transformStamped.transform.translation.x = float(shelf_pos[0])
@@ -164,13 +166,15 @@ class motion_executor():
                                            0.01,        # eef_step
                                            0)         # jump_threshold
         return plan
-    def go_pose(self,pose):
-
+    def go_pose(self,pose_stamped):
+	print(self.transformer.getFrameStrings())
+   	#transformer.waitForTransform("/world","/base", rospy.Time.now(), 23)
+        pose_stamped = self.transformer.transformPose("/world",pose_stamped)
+        pose = pose_stamped.pose
         broadcaster = tf2_ros.StaticTransformBroadcaster()
         static_transformStamped = geometry_msgs.msg.TransformStamped()
-
         static_transformStamped.header.stamp = rospy.Time.now()
-        static_transformStamped.header.frame_id = "world"
+        static_transformStamped.header.frame_id = "/world"
         static_transformStamped.child_frame_id = "EE_pose"
 
         static_transformStamped.transform.translation = pose.position
@@ -197,12 +201,12 @@ if __name__ == '__main__':
         m = motion_executor()
         rospy.sleep(1)        
         m.go_waypoint("tote")
-        rospy.sleep(4)
+        rospy.sleep(8)
         m.go_waypoint("bin_A")
-        rospy.sleep(4)
+        rospy.sleep(8)
         m.go_waypoint("bin_B")
-        rospy.sleep(4)
-        m.go_waypoint("bin_E")
+        rospy.sleep(8)
+        m.go_waypoint("bin_A")
         #rospy.sleep(5)
         #m.go_waypoint("tote")
 
