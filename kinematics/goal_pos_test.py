@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 import roslib
-roslib.load_manifest('ur_tutorial')
+#roslib.load_manifest('ur_tutorial')
 import rospy
 from goalpoints import *
 from trajectory_msgs.msg import JointTrajectory,JointTrajectoryPoint

@@ -303,13 +303,14 @@ class MoveGroupPythonIntefaceTutorial(object):
     ## first waypoint in the `RobotTrajectory`_ or ``execute()`` will fail
     ## END_SUB_TUTORIAL
 
-  def wait_for_state_update(self, box_is_known=False, box_is_attached=False, timeout=4):
+  def wait_for_state_update(self,box_name = "", box_is_known=False, box_is_attached=False, timeout=4):
     # Copy class variables to local variables to make the web tutorials more clear.
     # In practice, you should use the class variables directly unless you have a good
     # reason not to.
-    box_name = self.box_name
+    if box_name == "":
+        box_name = self.box_name
     scene = self.scene
-
+    print(box_name)
     ## BEGIN_SUB_TUTORIAL wait_for_scene_update
     ##
     ## Ensuring Collision Updates Are Receieved
@@ -460,16 +461,22 @@ def main():
     print "============ Press `Enter` to begin the tutorial by setting up the moveit_commander (press ctrl-d to exit) ..."
     raw_input()
     tutorial = MoveGroupPythonIntefaceTutorial()
+    rospy.sleep(2)
     table_pose = geometry_msgs.msg.PoseStamped()
     table_pose.header.frame_id = "world"
     
-    table_pose.pose.position.z = -0.05
+    table_pose.pose.position.z = -0.41
     table_pose.pose.orientation.w = 1.0
+    
+    tutorial.scene.add_box("table", table_pose, size=(0.6, 0.6, 0.8))
+    print("box added")
 
-    tutorial.scene.add_box("table", table_pose, size=(1, 1, 0.1))
-    tutorial.wait_for_state_update(box_is_known=True, timeout=5)
+    tutorial.wait_for_state_update(box_name = "table", box_is_known=True, timeout=5)
     print "============ Press `Enter` to execute a movement using a joint state goal ..."
     raw_input()
+    
+
+    print("box timeout?")
     tutorial.go_to_joint_state()
 
     print "============ Press `Enter` to execute a movement using a pose goal ..."
