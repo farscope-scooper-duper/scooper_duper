@@ -34,7 +34,7 @@ def spoofer():
         elif (state == 2):
           finger_pos_pub.publish(False)
           suction_state_pub.publish(True)
-        elif (state ==3):
+        elif (state == 3):
           finger_pos_pub.publish(True)
           suction_state_pub.publish(True)
         
