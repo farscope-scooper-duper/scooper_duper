@@ -1,0 +1,84 @@
+{
+    "bin_contents": {
+        "bin_A": [
+            "mommys_helper_outlet_plugs"
+        ],
+        "bin_B": [
+            "crayola_64_ct",
+            "kong_duck_dog_toy"
+        ],
+        "bin_C": [
+            "rolodex_jumbo_pencil_cup",
+            "stanley_66_052"
+        ],
+        "bin_D": [
+            "genuine_joe_plastic_stir_sticks",
+            "dr_browns_bottle_brush"
+        ],
+        "bin_E": [
+            "paper_mate_12_count_mirado_black_warrior",
+            "expo_dry_erase_board_eraser"
+        ],
+        "bin_F": [
+            "kong_sitting_frog_dog_toy",
+            "highland_6539_self_stick_notes"
+        ],
+        "bin_G": [
+            "mead_index_cards",
+            "kyjen_squeakin_eggs_plush_puppies"
+        ],
+        "bin_H": [
+            "munchkin_white_hot_duck_bath_toy",
+            "safety_works_safety_glasses"
+        ],
+        "bin_I": [
+            "first_years_take_and_toss_straw_cup"
+        ],
+        "bin_J": [
+            "kong_air_dog_squeakair_tennis_ball"
+        ],
+        "bin_K": [
+            "sharpie_accent_tank_style_highlighters",
+            "elmers_washable_no_run_school_glue"
+        ],
+        "bin_L": [
+            "champion_copper_plus_spark_plug",
+            "laugh_out_loud_joke_book",
+            "feline_greenies_dental_treats"
+        ]
+    },
+    "work_order": [
+        {
+            "bin": "bin_A",
+            "item": "mommys_helper_outlet_plugs"
+        },
+        {
+            "bin": "bin_B",
+            "item": "kong_duck_dog_toy"
+        },
+        {
+            "bin": "bin_C",
+            "item": "stanley_66_052"
+        },
+        {
+            "bin": "bin_D",
+            "item": "genuine_joe_plastic_stir_sticks"
+        },
+        {
+            "bin": "bin_F",
+            "item": "kong_sitting_frog_dog_toy"
+        },
+        {
+            "bin": "bin_H",
+            "item": "safety_works_safety_glasses"
+        },
+        {
+            "bin": "bin_J",
+            "item": "kong_air_dog_squeakair_tennis_ball"
+        },
+        {
+            "bin": "bin_L",
+            "item": "champion_copper_plus_spark_plug"
+        }
+    ]
+}
