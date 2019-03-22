@@ -44,7 +44,6 @@ def all_close(goal, actual, tolerance):
 
   elif type(goal) is geometry_msgs.msg.Pose:
     return all_close(pose_to_list(goal), pose_to_list(actual), tolerance)
-
   return True
 def wait_for_state_update(scene,box_name = "", box_is_known=False, box_is_attached=False, timeout=4):
 
@@ -174,7 +173,10 @@ class motion_executor():
         current_pose = self.transformer.transformPose("/world",current_pose_stamped).pose
         print(self.goal_pose)
         print(current_pose)
-        return all_close(self.goal_pose, current_pose,0.01)
+        x_close = abs(self.goal_pose.position.x - current_pose.position.x) < 0.02
+        y_close = abs(self.goal_pose.position.y - current_pose.position.y) < 0.02
+        z_close = abs(self.goal_pose.position.z - current_pose.position.z) < 0.02
+        return (x_close and y_close and z_close) #all_close(self.goal_pose.position, current_pose.position,0.03)
     def go_to_joint_config(self,joint_goal):
 
         group.go(joint_goal, wait=True)

@@ -6,6 +6,7 @@
 # - It's going to give a grumble in the unlikely case that there's an attempt to add an item to a bin that had nothing in to start with (or rather, that didn't exist in the .json).
 # - No assumptions are made about what is a target item and what isn't or how it might change when things are moved.
 # - (This is a design quirk) Failing in the sense of dropping the item on the floor is a success to the work order.
+# - Update work order first thing.
 
 #Needs to be able to:
 #`Open and read a .json file
@@ -23,6 +24,7 @@
 #`Keep a priority queue of target items
 #`Manage the queue so that items are added/removed/pushed back
 #Curate the queue according to some measure of pickability
+
 
 import json
 

@@ -46,6 +46,7 @@ world_model = WorldModel('pick_list.json')
 rospy.init_node('control_loop', anonymous=True)
 finger_pos_pub = rospy.Publisher('finger_pos', Bool, queue_size=10)
 suction_state_pub = rospy.Publisher('suction_state', Bool, queue_size=10)
+suction_state_pub.publish(False)
 EE_pose_pub = rospy.Publisher('t_EE_pose', Transform, queue_size=10)
 
 rospy.Subscriber("items_in_view", ItemList , c_loop_vision_callback)
@@ -84,11 +85,22 @@ while ((time.time() - run_time) < time_limit) and (len(world_model.pick_list) > 
             world_model.pick_failure(target_item)
             state = 'get_target_item'
         elif (bin_reached == True):
-            
             attempt_counter = 0 #Keeps track of the number of move-out-of-bin attempts (not grip attempts)
-            state = 'move_to_viewpoints'
+            #state = 'move_to_viewpoints' #Demo below
+            suction_state_pub.publish(True)
+            suck_time = time.time()
+            state = 'suction_demo'
         else:
+            suction_state_pub.publish(False)
             state = 'move_to_bin'
+
+    elif (state == 'suction_demo'):
+        if ((time.time() - suck_time) < 3):
+            state = 'suction_demo'
+        else:
+            suction_state_pub.publish(False)
+            world_model.pick_failure(target_item)
+            state = 'get_target_item'
 
     elif (state == 'move_to_viewpoints'): #TODO: Handling for multiple sequential viewpoints; handling for view check and shuffle
         viewpoint_reached = True #TODO: update this with correct viewpoint reached signal (coords of bin plus offset)

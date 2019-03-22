@@ -65,20 +65,24 @@
             "item": "genuine_joe_plastic_stir_sticks"
         },
         {
+            "bin": "bin_E",
+            "item": "paper_mate_12_count_mirado_black_warrior"
+        },
+        {
             "bin": "bin_F",
             "item": "kong_sitting_frog_dog_toy"
         },
         {
+            "bin": "bin_G",
+            "item": "mead_index_cards"
+        },
+        {
             "bin": "bin_H",
-            "item": "safety_works_safety_glasses"
+            "item": "munchkin_white_hot_duck_bath_toy"
         },
         {
-            "bin": "bin_J",
-            "item": "kong_air_dog_squeakair_tennis_ball"
-        },
-        {
-            "bin": "bin_L",
-            "item": "champion_copper_plus_spark_plug"
+            "bin": "bin_I",
+            "item": "first_years_take_and_toss_straw_cup"
         }
     ]
 }
