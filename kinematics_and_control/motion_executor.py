@@ -94,6 +94,8 @@ class motion_executor():
         self.transformer = tf.TransformListener()
     def go_into_bin(self):
         current_pose = self.group.get_current_pose().pose()
+    def go_to_start(self):
+        go_to_joint_config([-98,-80,-107,-82,-90,8])
         #pose = 
         #print(current_pose_stamped)
     def build_scene(self,shelf_pos):
@@ -234,6 +236,7 @@ if __name__ == '__main__':
         rospy.init_node('move_group_python_interface_tutorial',
                        anonymous=True)
         m = motion_executor()
+        m.go_to_start()
         rospy.sleep(1)        
         m.go_waypoint("tote")
         rospy.sleep(8)
