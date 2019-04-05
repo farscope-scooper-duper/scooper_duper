@@ -12,9 +12,10 @@ void messageCb( const std_msgs::Bool& toggle_msg){
 
   if ( toggle_msg.data ) {
     digitalWrite( VacuumPin , LOW ) ;
+    digitalWrite( LED_BUILTIN, HIGH);
   } else {
     digitalWrite( VacuumPin , HIGH ) ;
-    //digitalWrite( LED_BUILTIN , LOW ) ;
+    digitalWrite( LED_BUILTIN , LOW ) ;
 }
   
 }
@@ -24,7 +25,7 @@ ros::Subscriber<std_msgs::Bool> sub( "suction_state" , &messageCb );
 void setup() {
   // put your setup code here, to run once:
   pinMode ( VacuumPin , OUTPUT ) ;
-  //pinMode ( LED_BUILTIN , OUTPUT ) ;
+  pinMode ( LED_BUILTIN , OUTPUT ) ;
   digitalWrite( VacuumPin , HIGH ) ; 
   nh.initNode() ;
   nh.subscribe(sub) ;

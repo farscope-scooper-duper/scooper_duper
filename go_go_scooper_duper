@@ -1,0 +1,55 @@
+#This has the problem that it starts everything in one place, which interferes with the keyboard input somehow.
+#It also doesn't gracefully exit at all.
+LAUNCH_FILE="move_it_simulation.launch"
+GRIPPER_SPOOF=true
+SUCTION_SPOOF=true
+VISION_SPOOF=true
+
+while getopts ":rgsv" opt; do
+  case ${opt} in
+    r )
+      LAUNCH_FILE="move_it_real.launch"
+      ;;
+    g )
+      GRIPPER_SPOOF=false
+      ;;
+    s )
+      SUCTION_SPOOF=false
+      ;;
+    v )
+      VISION_SPOOF=false 
+      ;;
+  esac
+done
+
+#Close old instances of roscore
+killall roscore
+#(Kill all running spoofers, etc.)
+#Start a fresh instance
+roscore&
+#Wait long enough for it to fully start up
+sleep 3
+if $GRIPPER_SPOOF; then
+  echo "Gripper spoofing"
+  rosrun scooper_duper gripper_spoof.py&
+fi 
+if $SUCTION_SPOOF; then
+  echo "Suction spoofing"
+  rosrun scooper_duper vacuum_spoof.py&
+else
+  echo "Suction not spoofing"
+#  rosrun rosserial_python serial_node.py /dev/ttyUSB0&
+fi
+if $VISION_SPOOF; then
+  echo "Vision spoofing"
+  rosrun scooper_duper vision_spoof.py&
+fi
+
+#Have to kill any old gazebo servers
+killall gzserver
+#Start the correct launcher
+roslaunch scooper_duper $LAUNCH_FILE&
+
+#Run the control loop
+cd kinematics_and_control
+./control_loop.py&
