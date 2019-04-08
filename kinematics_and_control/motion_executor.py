@@ -82,8 +82,7 @@ class motion_executor():
         #UR10's planning group name
         group_name = "manipulator"
         self.group = moveit_commander.MoveGroupCommander(group_name)
-        #Set max speed (only applies on joint moves)
-	    self.group.set_max_velocity_scaling_factor(0.06)
+        self.group.set_max_velocity_scaling_factor(0.06)
         #self.group.set_max_velocity_scaling_factor(0.2)
         #publishes planned path in rviz
         self.display_trajectory_publisher = rospy.Publisher('/move_group/display_planned_path',
@@ -101,7 +100,7 @@ class motion_executor():
         #Listener for various transforms allows us to convert between various frames
         self.transformer = tf.TransformListener(True,rospy.Duration(10.0))#self.tf_buffer)
         #Build the shelfs at (x,y,z) (in world frame)
-        #self.build_scene((0,-1.077-0.34,0.879))
+        self.build_scene((0,-1.077-0.34,0.879))
         self.clear_plan()
         
     def go_into_bin(self):
@@ -115,21 +114,7 @@ class motion_executor():
         
         #publish shelf frame that is static, later make variable for calibration
         
-        shelf_transform = geometry_msgs.msg.TransformStamped()
 
-        shelf_transform.header.stamp = rospy.Time.now()
-        shelf_transform.header.frame_id = "base"
-        shelf_transform.child_frame_id = "shelves"
-        shelf_transform.transform.translation.x = float(shelf_pos[0])
-        shelf_transform.transform.translation.y = float(shelf_pos[1])
-        shelf_transform.transform.translation.z = float(shelf_pos[2])
-        quat = tf.transformations.quaternion_from_euler(float(0),float(0),float(0))
-        shelf_transform.transform.rotation.x = quat[0]
-        shelf_transform.transform.rotation.y = quat[1]
-        shelf_transform.transform.rotation.z = quat[2]
-        shelf_transform.transform.rotation.w = quat[3]
-        
-        self.broadcaster.sendTransform(shelf_transform)
         
         #sucker position relative to the end effector link
         gripper_transform = geometry_msgs.msg.TransformStamped()
@@ -147,7 +132,25 @@ class motion_executor():
         gripper_transform.transform.rotation.y = quat[1]
         gripper_transform.transform.rotation.z = quat[2]
         gripper_transform.transform.rotation.w = quat[3]
-        self.broadcaster2.sendTransform(gripper_transform)
+        #self.broadcaster2.sendTransform(gripper_transform)
+        #self.transformer.waitForTransform("/gripper_sucker","/ee_link",rospy.Time(),rospy.Duration(2.0))
+        
+        shelf_transform = geometry_msgs.msg.TransformStamped()
+        shelf_transform.header.stamp = rospy.Time.now()
+        shelf_transform.header.frame_id = "base"
+        shelf_transform.child_frame_id = "shelves"
+        shelf_transform.transform.translation.x = float(shelf_pos[0])
+        shelf_transform.transform.translation.y = float(shelf_pos[1])
+        shelf_transform.transform.translation.z = float(shelf_pos[2])
+        quat = tf.transformations.quaternion_from_euler(float(0),float(0),float(0))
+        shelf_transform.transform.rotation.x = quat[0]
+        shelf_transform.transform.rotation.y = quat[1]
+        shelf_transform.transform.rotation.z = quat[2]
+        shelf_transform.transform.rotation.w = quat[3]
+        #tf2 specific bug where you can only use one broadcaster per process, so publish both transforms at once
+        self.broadcaster.sendTransform([gripper_transform,shelf_transform])
+        #self.transformer.waitForTransform("/shelves","/base",rospy.Time(),rospy.Duration(2.0))
+        
         #Wait for transforms to be published
         rospy.sleep(2)
         #Making shelving out of planning boxes 
