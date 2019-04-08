@@ -1,0 +1,26 @@
+<launch>
+    <arg name="real" default="false"/>
+    <arg name="gripper" default="false"/>
+    <arg name="suction" default="false"/>
+    <arg name="vision" default="false"/>
+    <arg name="control" default="true"/>
+
+    <!-- Non-spoofing gripper not yet implemented. -->
+    <node unless="$(arg gripper)" name="gripper" type="gripper_spoof.py" pkg="scooper_duper"/>
+
+    <node unless="$(arg suction)" name="vacuum" type="vacuum_spoof.py" pkg="scooper_duper"/>
+    <node     if="$(arg suction)" name="serial_node" type="serial_node.py" pkg="rosserial_python">
+        <param name="port" value="/dev/ttyACM1"/>
+        <param name="baud" value="115200"/>
+    </node>
+
+    <!-- Non-spoofing vision not yet implemented. -->
+    <node unless="$(arg vision)" name="vision" type="vision_spoof.py" pkg="scooper_duper"/>
+
+    <include     if="$(arg real)" file="$(find scooper_duper)/launch/move_it_real.launch"/>
+    <include unless="$(arg real)" file="$(find scooper_duper)/launch/move_it_simulation.launch"/>
+
+    <node     if="$(arg control)" name="control_loop" type="control_loop.py" pkg="scooper_duper"/>
+    <node unless="$(arg control)" name="control_loop" type="control_loop_spoof.py" pkg="scooper_duper"/>
+
+</launch>

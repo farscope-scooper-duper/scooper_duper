@@ -40,7 +40,7 @@ print("Connection tests complete.")
 print("Running setup and calibration...")
 
 #Read in the pick file, set up world model.
-world_model = WorldModel('pick_list.json')
+world_model = WorldModel('/home/farscope/catkin_ws/src/scooper_duper/pick_list.json')
 
 #Set up ros communications
 rospy.init_node('control_loop', anonymous=True)

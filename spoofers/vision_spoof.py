@@ -16,7 +16,7 @@ item2.location = 4
 def spoofer():
     items_in_view_pub = rospy.Publisher('items_in_view', ItemList, queue_size = 10)
 
-    rospy.init_node('vision_spoof', anonymous=True)
+    rospy.init_node('vision', anonymous=True)
     
     rate = rospy.Rate(0.5) # 10hz
     item_list = ItemList()

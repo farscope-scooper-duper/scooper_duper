@@ -15,8 +15,8 @@ def spoofer():
 
     rospy.Subscriber('suction_state', Bool, vacuum_c_loop_callback)
     rate = rospy.Rate(0.5)
-        
-    rate.sleep()
+    while not rospy.is_shutdown():
+        rate.sleep()
 
 if __name__ == '__main__':
     try:
