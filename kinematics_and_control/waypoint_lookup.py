@@ -36,8 +36,17 @@ def get_waypoint_pose(waypoint_id):
     tote_pose.position.x = bin_centre
     tote_pose.position.y = move_plane_y
     tote_pose.position.z = 0.203
-    q = tf.transformations.quaternion_from_euler(
-       float(math.pi/2),float(-math.pi/2),float(0))
+    #Past config (inccorrect)
+    #Angles in the world (-1.9543570241642498, -1.5529218092789958, 0.3892552997919889)
+    #Angles in the base (-1.954357024164252, -1.552921809278996, -2.752337353797592)
+    #Angles in the tool (-1.4030273870850318, -1.570772480174235, 2.9737518231340956)
+
+    #Upside down (correct)
+    #Angles in the world (1.9349075603700638, 1.528516883229618, -3.067595661310612)
+    #Angles in the base 3.106269841848966, 1.5635609662486774, 1.5222932852999707
+    #Angles in the tool (2.97780818708548, -1.5707577533651569, -1.4070857625513045)
+
+    q = tf.transformations.quaternion_from_euler(float(math.pi),float(math.pi/2),float(math.pi/2))
     #tote_pose.orientation.x = 0#q[0];
     #tote_pose.orientation.y = 0#q[1];
     #tote_pose.orientation.z = 0.688#q[2];

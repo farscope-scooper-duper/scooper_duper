@@ -1,6 +1,7 @@
 <launch>
-  <include file="$(find ur_gazebo)/launch/ur10.launch">
+  <include file="$(find scooper_duper)/launch/ur10.launch">
         <arg name="limited" value="true"/>
+        <arg name="gaz_world_name" value = "$(find scooper_duper)/launch/empty.world"/>
   </include>
   <include file="$(find ur10_moveit_config)/launch/ur10_moveit_planning_execution.launch">
         <arg name="limited" value="true"/>

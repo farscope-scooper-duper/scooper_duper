@@ -7,7 +7,7 @@ from scooper_duper.msg import *
 from waypoint_lookup import get_waypoint_pose as get_waypoint_pose
 # because of transformations
 import tf
-
+import math
 import tf2_ros
 #import sys
 #import copy
@@ -78,7 +78,7 @@ class motion_executor():
         
         group_name = "manipulator"
         self.group = moveit_commander.MoveGroupCommander(group_name)
-        self.group.set_max_velocity_scaling_factor(0.1)
+        self.group.set_max_velocity_scaling_factor(0.03)
         #self.group.set_max_velocity_scaling_factor(0.2)
 
         self.display_trajectory_publisher = rospy.Publisher('/move_group/display_planned_path',
@@ -89,13 +89,15 @@ class motion_executor():
         #print(self.planning_frame)
         self.broadcaster = tf2_ros.StaticTransformBroadcaster()
         self.broadcaster2 = tf2_ros.StaticTransformBroadcaster()
-        self.build_scene((0,-1.077-0.34,0.879))
+        self.transformer = tf.TransformListener(True,rospy.Duration(10.0))#self.tf_buffer)
+        #self.build_scene((0,-1.077-0.34,0.879))
         self.clear_plan()
-        self.transformer = tf.TransformListener()
+        
     def go_into_bin(self):
         current_pose = self.group.get_current_pose().pose()
     def go_to_start(self):
-        go_to_joint_config([-98,-80,-107,-82,-90,8])
+        starting_angles =[-98*math.pi/180,-80*math.pi/180,-107*math.pi/180,-82*math.pi/180,90*math.pi/180,8*math.pi/180]
+        self.go_to_joint_config(starting_angles)
         #pose = 
         #print(current_pose_stamped)
     def build_scene(self,shelf_pos):
@@ -168,6 +170,36 @@ class motion_executor():
         print("remove box")    
     def execute_plan(self):
         self.group.execute(self.plan, wait=False)
+    def print_pose(self):
+        current_pose_world = self.group.get_current_pose()
+        print("Current pose in the world:")
+        print(current_pose_world)
+        pose_quat = current_pose_world.pose.orientation
+        pose_quat = (pose_quat.x,pose_quat.y,pose_quat.z,pose_quat.w);
+        angles = tf.transformations.euler_from_quaternion(pose_quat)
+        print("Angles in the world")
+        print(angles)
+        
+        current_pose_EE = self.transformer.transformPose("/base",current_pose_world)
+        print("Current pose in the base frame:")
+        print(current_pose_EE)
+        pose_quat = current_pose_EE.pose.orientation
+        pose_quat = (pose_quat.x,pose_quat.y,pose_quat.z,pose_quat.w);
+        angles = tf.transformations.euler_from_quaternion(pose_quat)
+        print("Angles in the base")
+        print(angles)
+        #self.tf_buffer.lookup_transform("/tool0","/world",rospy.Time(),rospy.Duration(1.0))
+        c_pose = self.group.get_current_pose()
+        c_pose.header.stamp = rospy.Time()
+        self.transformer.waitForTransform("/tool0","/world",rospy.Time(),rospy.Duration(2.0))
+        current_pose_tool = self.transformer.transformPose("/tool0",c_pose)
+        print("Current pose in the tool frame:")
+        print(current_pose_tool)
+        pose_quat = current_pose_tool.pose.orientation
+        pose_quat = (pose_quat.x,pose_quat.y,pose_quat.z,pose_quat.w);
+        angles = tf.transformations.euler_from_quaternion(pose_quat)
+        print("Angles in the tool")
+        print(angles)
 
     #def move_into_box(self,start_pose,dir):
     def check_complete(self):
@@ -181,8 +213,8 @@ class motion_executor():
         return (x_close and y_close and z_close) #all_close(self.goal_pose.position, current_pose.position,0.03)
     def go_to_joint_config(self,joint_goal):
 
-        group.go(joint_goal, wait=True)
-        group.stop()
+        self.group.go(joint_goal, wait=True)
+        self.group.stop()
         current_joints = self.group.get_current_joint_values()
         return all_close(joint_goal, current_joints, 0.01)
 
@@ -197,10 +229,11 @@ class motion_executor():
                                            self.waypoints,   # waypoints to follow
                                            0.01,        # eef_step
                                            0)         # jump_threshold
+        plan = self.group.retime_trajectory(self.robot.get_current_state(),plan, 0.05);
         return plan
     def go_pose(self,pose_stamped):
 	#print(self.transformer.getFrameStrings())
-   	#transformer.waitForTransform("/world","/base", rospy.Time.now(), 23)
+        self.transformer.waitForTransform("/world","/base", rospy.Time(),rospy.Duration(2.0))
         pose_stamped = self.transformer.transformPose("/world",pose_stamped)
         pose = pose_stamped.pose
         broadcaster = tf2_ros.StaticTransformBroadcaster()
@@ -241,7 +274,7 @@ if __name__ == '__main__':
         m.go_waypoint("tote")
         rospy.sleep(8)
         m.go_waypoint("bin_A")
-        m.go_into_bin()
+       # m.go_into_bin()
         #while rospy.:
            # print(m.check_complete())
             #rospy.sleep(1)

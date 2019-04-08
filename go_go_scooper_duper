@@ -5,6 +5,17 @@ GRIPPER_SPOOF=true
 SUCTION_SPOOF=true
 VISION_SPOOF=true
 
+trap ctrl_c INT
+
+function ctrl_c() {
+    echo "SHUTTING DOWN..."
+    pkill -P $$
+    killall -9 gzserver gzclient
+    killall -9 roscore
+    killall -9 roslaunch
+    kill $$
+}
+
 while getopts ":rgsv" opt; do
   case ${opt} in
     r )
@@ -51,5 +62,5 @@ killall gzserver
 roslaunch scooper_duper $LAUNCH_FILE&
 
 #Run the control loop
-cd kinematics_and_control
-./control_loop.py&
+#cd kinematics_and_control
+#./control_loop.py&
