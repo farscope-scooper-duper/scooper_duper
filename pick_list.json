@@ -49,6 +49,18 @@
     },
     "work_order": [
         {
+            "bin": "bin_J",
+            "item": "kong_air_dog_squeakair_tennis_ball"
+        },
+        {
+            "bin": "bin_K",
+            "item": "elmers_washable_no_run_school_glue"
+        },
+        {
+            "bin": "bin_L",
+            "item": "laugh_out_loud_joke_book"
+        },
+        {
             "bin": "bin_A",
             "item": "mommys_helper_outlet_plugs"
         },

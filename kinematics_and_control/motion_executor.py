@@ -101,7 +101,7 @@ class motion_executor():
         #Listener for various transforms allows us to convert between various frames
         self.transformer = tf.TransformListener(True,rospy.Duration(10.0))#self.tf_buffer)
         #Build the shelfs at (x,y,z) (in world frame)
-        self.build_scene((0,-1.077-0.34,0.879))
+        self.build_scene((0.448,-1.11,1.75-0.77))
         self.clear_plan()
     
     def shutdown(self):
@@ -127,9 +127,9 @@ class motion_executor():
         gripper_transform.header.stamp = rospy.Time.now()
         gripper_transform.header.frame_id = "ee_link"
         gripper_transform.child_frame_id = "gripper_sucker"
-        gripper_transform.transform.translation.x = float(0)
+        gripper_transform.transform.translation.x = float(0.08)
         gripper_transform.transform.translation.y = float(0)
-        gripper_transform.transform.translation.z = float(0.34)
+        gripper_transform.transform.translation.z = float(0.625)
         quat = tf.transformations.quaternion_from_euler(
                    float(0),float(0),float(0))
         gripper_transform.transform.rotation.x = quat[0]
@@ -155,7 +155,7 @@ class motion_executor():
             bin_pose = get_waypoint_pose(bin_id).pose
             bin_tf = geometry_msgs.msg.TransformStamped()
             bin_tf.header.stamp = rospy.Time.now()
-            bin_tf.header.frame_id = "/base"
+            bin_tf.header.frame_id = "/shelves"
             bin_tf.child_frame_id = "/" + bin_id
 
             bin_tf.transform.translation = bin_pose.position
@@ -176,25 +176,34 @@ class motion_executor():
         #Pose of each shelf
         shelf_pose = geometry_msgs.msg.PoseStamped()
         shelf_pose.header.frame_id = "shelves"
+        shelf_depth = 0.590
+        shelf_width = 0.89
+        shelf_height = 0.075
+        shelf_separation = 0.32 
         #building the middle shelves
         for i in range(5):
-            shelf_pose.pose.position.z = -i*0.32
+            shelf_pose.pose.position.x = -shelf_width/2
+            shelf_pose.pose.position.y = -shelf_depth/2
+            shelf_pose.pose.position.z = -i*shelf_separation- shelf_height/2
             shelf_pose.pose.orientation.w = 1
             shelf_name = "mid_shelf"+str(i)
-            self.scene.add_box(shelf_name, shelf_pose, size=(0.9, 0.6, 0.075))
+            self.scene.add_box(shelf_name, shelf_pose, size=(shelf_width, shelf_depth, shelf_height))
             #if successful in building shelves every planning box will of been added to the scene
             success = success and wait_for_state_update(self.scene,box_name = shelf_name,box_is_known=True,timeout=2)
             
         #Side of shelving
         side_pose = geometry_msgs.msg.PoseStamped()
         side_pose.header.frame_id = "shelves"
-        for i in (-1,1):
-            side_pose.pose.position.y = 0
-            side_pose.pose.position.z = -2.5*0.32
-            side_pose.pose.position.x = i*0.86/2
+        side_width = 0.04
+        side_height = 1.75
+        for i in (0,1):
+            side_pose.pose.position.x = -i*shelf_width + (i-0.5)*2*side_width/2
+            side_pose.pose.position.y = -shelf_depth/2
+            side_pose.pose.position.z = -side_height/2 #-2.5*0.32
+            
             side_pose.pose.orientation.w = 1
             shelf_name = "side_shelf"+str(i+1)
-            self.scene.add_box(shelf_name, side_pose, size=(0.04, 0.6, 1.75))
+            self.scene.add_box(shelf_name, side_pose, size=(side_width, shelf_depth, side_height))
             success = success and wait_for_state_update(self.scene,box_name = shelf_name,box_is_known=True,timeout=2)
 
         
@@ -309,7 +318,7 @@ class motion_executor():
             self.clear_plan()
             #wpose = self.group.get_current_pose()
             
-            #Move it's Straight line trajectory can go between multiple points, however all moves are implimented point to point moves
+            #Move it's Straight line trajectory can go between multiple points, however all moves are implemented point to point moves
             #So only add one pose
             self.add_plan_pose(EE_goal_pose)
             
@@ -327,6 +336,7 @@ class motion_executor():
             self.execute_plan()
         except Exception as e:            
             print(e)
+
     def go_vision_viewpoint(self,vision_id,bin_id):
         viewpoint_positions = ((0,0,0),(0,-0.15,0),(0,0.15,0),(-0.15,0,0))
         viewpoint_rotations = np.array(((0,0,0),(-20,0,0),(20,0,0),(0,20,0)))
@@ -346,6 +356,20 @@ class motion_executor():
         self.go_pose(viewpoint_pose)
         return viewpoint_pose
         
+    def go_waypoint_mouth(self,bin_id): #Moves to the bin mouth corresponding to bin_id (15cm forward of bin_id's waypoint).
+        mouth_offset = (0.0, 0.0, 0.5)
+        mouth_pose = geometry_msgs.msg.PoseStamped()
+        mouth_pose.header.stamp = rospy.Time.now()
+        mouth_pose.header.frame_id = "/" + bin_id
+        mouth_pose.pose.position.x = float(mouth_offset[0])
+        mouth_pose.pose.position.y = float(mouth_offset[1])
+        mouth_pose.pose.position.z = float(mouth_offset[2])
+        mouth_pose.pose.orientation.x = 0
+        mouth_pose.pose.orientation.y = 0
+        mouth_pose.pose.orientation.z = 0
+        mouth_pose.pose.orientation.w = 1
+        self.go_pose(mouth_pose)
+        return mouth_pose
 
     def go_waypoint(self,waypoint_id):
         #looks up waypoint and then perfroms straight line to it
@@ -357,9 +381,9 @@ if __name__ == '__main__':
                        anonymous=True)
         m = motion_executor()
         m.go_to_start()
-        rospy.sleep(1)        
-        m.go_waypoint("tote")
-        rospy.sleep(8)
+        #rospy.sleep(1)        
+        #m.go_waypoint("tote")
+        #rospy.sleep(8)
         m.go_waypoint("bin_A")
        # m.go_into_bin()
         #while rospy.:

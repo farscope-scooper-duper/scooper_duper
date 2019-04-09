@@ -4,18 +4,19 @@ import math
 import rospy
 
 def get_waypoint_pose(waypoint_id):
-    move_plane_y = -0.542
-    bin_centre = 0
+    move_plane_y = 0.71#-1.11+0.400
+    bin_centre = -0.89/2
     bin_width = 0.25
     #arm_base x axis goes from right to left 
     bin_left = bin_centre + bin_width
     bin_right = bin_centre - bin_width
     #rospy.init_node('move_group_python_interface_tutorial',
     #                   anonymous=True)
-    shelf1_z = 0.750
-    shelf2_z = shelf1_z - 0.32
-    shelf3_z = shelf2_z - 0.32
-    shelf4_z = shelf3_z - 0.32
+    shelf_separation = 0.32    
+    shelf1_z = -shelf_separation/2
+    shelf2_z = shelf1_z - shelf_separation
+    shelf3_z = shelf2_z - shelf_separation
+    shelf4_z = shelf3_z - shelf_separation
 
     bin_waypoints = {
         "bin_A": (bin_left,move_plane_y,shelf1_z),
@@ -73,7 +74,7 @@ def get_waypoint_pose(waypoint_id):
     
     pose_stamped = PoseStamped()
     pose_stamped.header.stamp = rospy.Time.now()
-    pose_stamped.header.frame_id = "/base"
+    pose_stamped.header.frame_id = "/shelves"
     pose_stamped.pose = pose
     return pose_stamped
 
