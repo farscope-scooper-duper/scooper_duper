@@ -5,6 +5,8 @@ from std_msgs.msg import String,Bool,Int8
 from geometry_msgs.msg import Transform,Vector3,Quaternion
 from scooper_duper.msg import *
 from waypoint_lookup import get_waypoint_pose as get_waypoint_pose
+
+import numpy as np
 # because of transformations
 import tf
 import math
@@ -96,45 +98,45 @@ class motion_executor():
 
         #publishers for the shelf frame and gripper sucker frame
         self.broadcaster = tf2_ros.StaticTransformBroadcaster()
-        self.broadcaster2 = tf2_ros.StaticTransformBroadcaster()
         #Listener for various transforms allows us to convert between various frames
         self.transformer = tf.TransformListener(True,rospy.Duration(10.0))#self.tf_buffer)
         #Build the shelfs at (x,y,z) (in world frame)
         self.build_scene((0,-1.077-0.34,0.879))
         self.clear_plan()
-        
+    
+    def shutdown(self):
+        self.group.stop()
+
     def go_into_bin(self):
         current_pose = self.group.get_current_pose().pose()
+
+
     def go_to_start(self):
         starting_angles =[-98*math.pi/180,-80*math.pi/180,-107*math.pi/180,-82*math.pi/180,90*math.pi/180,8*math.pi/180]
         self.go_to_joint_config(starting_angles)
         #pose = 
         #print(current_pose_stamped)
+
+
     def build_scene(self,shelf_pos):
         
         #publish shelf frame that is static, later make variable for calibration
-        
-
-        
         #sucker position relative to the end effector link
+        tf_to_broadcast = []
         gripper_transform = geometry_msgs.msg.TransformStamped()
         gripper_transform.header.stamp = rospy.Time.now()
         gripper_transform.header.frame_id = "ee_link"
         gripper_transform.child_frame_id = "gripper_sucker"
-
         gripper_transform.transform.translation.x = float(0)
         gripper_transform.transform.translation.y = float(0)
         gripper_transform.transform.translation.z = float(0.34)
-
         quat = tf.transformations.quaternion_from_euler(
                    float(0),float(0),float(0))
         gripper_transform.transform.rotation.x = quat[0]
         gripper_transform.transform.rotation.y = quat[1]
         gripper_transform.transform.rotation.z = quat[2]
         gripper_transform.transform.rotation.w = quat[3]
-        #self.broadcaster2.sendTransform(gripper_transform)
-        #self.transformer.waitForTransform("/gripper_sucker","/ee_link",rospy.Time(),rospy.Duration(2.0))
-        
+        tf_to_broadcast.append(gripper_transform)
         shelf_transform = geometry_msgs.msg.TransformStamped()
         shelf_transform.header.stamp = rospy.Time.now()
         shelf_transform.header.frame_id = "base"
@@ -147,9 +149,25 @@ class motion_executor():
         shelf_transform.transform.rotation.y = quat[1]
         shelf_transform.transform.rotation.z = quat[2]
         shelf_transform.transform.rotation.w = quat[3]
+        tf_to_broadcast.append(shelf_transform)
+
+        for bin_id in ["bin_A","bin_B","bin_C","bin_D","bin_E","bin_F","bin_G","bin_H","bin_I","bin_J","bin_K","bin_L"]:
+            bin_pose = get_waypoint_pose(bin_id).pose
+            bin_tf = geometry_msgs.msg.TransformStamped()
+            bin_tf.header.stamp = rospy.Time.now()
+            bin_tf.header.frame_id = "/base"
+            bin_tf.child_frame_id = "/" + bin_id
+
+            bin_tf.transform.translation = bin_pose.position
+            bin_tf.transform.rotation = bin_pose.orientation
+            tf_to_broadcast.append(bin_tf)
+
+
+
+
         #tf2 specific bug where you can only use one broadcaster per process, so publish both transforms at once
-        self.broadcaster.sendTransform([gripper_transform,shelf_transform])
-        #self.transformer.waitForTransform("/shelves","/base",rospy.Time(),rospy.Duration(2.0))
+        self.broadcaster.sendTransform(tf_to_broadcast)
+        self.transformer.waitForTransform("/shelves","/base",rospy.Time.now(),rospy.Duration(2.0))
         
         #Wait for transforms to be published
         rospy.sleep(2)
@@ -179,15 +197,21 @@ class motion_executor():
             self.scene.add_box(shelf_name, side_pose, size=(0.04, 0.6, 1.75))
             success = success and wait_for_state_update(self.scene,box_name = shelf_name,box_is_known=True,timeout=2)
 
-
+        
         print("shelves built = " + str(success))
         
+
+
     def clear_scene(self):
         #TODO
         print("remove box")    
+
+
     def execute_plan(self):
         #excute linear motion without blocking    
         self.group.execute(self.plan, wait=False)
+
+
     def print_pose(self):
         #prints the current pose of the end effector link relative to various frames
         current_pose_world = self.group.get_current_pose()
@@ -211,14 +235,14 @@ class motion_executor():
         #tool relative to the endeffector will have zero translation
         #TODO need to get the tool0 frame relative to base
         self.transformer.waitForTransform("/tool0","/world",rospy.Time(),rospy.Duration(2.0))
-        current_pose_tool = self.transformer.transformPose("/tool0",c_pose)
-        print("Current pose in the tool frame:")
-        print(current_pose_tool)
-        pose_quat = current_pose_tool.pose.orientation
-        pose_quat = (pose_quat.x,pose_quat.y,pose_quat.z,pose_quat.w);
+        position,pose_quat = self.transformer.lookupTransform("/tool0","/world",rospy.Time())
+        print("Current position in the tool frame:")
+        print(position)
+        pose_quat = (pose_quat[0],pose_quat[1],pose_quat[2],pose_quat[3]);
         angles = tf.transformations.euler_from_quaternion(pose_quat)
         print("Angles in the tool:" +str(angles))
  
+
 
     #def move_into_box(self,start_pose,dir):
     def check_complete(self):
@@ -234,6 +258,8 @@ class motion_executor():
         z_close = abs(self.goal_pose.position.z - current_pose.position.z) < tolerance
         return (x_close and y_close and z_close) #all_close(self.goal_pose.position, current_pose.position,0.03)
 
+
+
     def go_to_joint_config(self,joint_goal):
         #Performs a blocking joint move
         self.group.go(joint_goal, wait=True)
@@ -244,58 +270,82 @@ class motion_executor():
 
     def clear_plan(self):
          self.waypoints = []
+
     def add_plan_pose(self,pose):
         #Appends pose to the the plan, pose should be relative to the world frame
         self.waypoints.append(copy.deepcopy(pose))
+
     def compute_plan(self):
         print(self.waypoints)
         #Produce straight line move plan
-        (plan, fraction) = self.group.compute_cartesian_path(
-                                           self.waypoints,   # waypoints to follow
-                                           0.01,        # eef_step
-                                           0)         # jump_threshold
+        (plan, fraction) = self.group.compute_cartesian_path(self.waypoints, 0.01,0)         # jump_threshold
         #Re scale trajectory velocity, typical value 0.05
         plan = self.group.retime_trajectory(self.robot.get_current_state(),plan, 0.05);
         return plan
-    def go_pose(self,pose_stamped):
-	#print(self.transformer.getFrameStrings())
-        #get pose in world frame
-        self.transformer.waitForTransform("/world","/base", rospy.Time(),rospy.Duration(2.0))
-        pose_stamped = self.transformer.transformPose("/world",pose_stamped)
-        
-        EE_goal_pose = pose_stamped.pose
-        broadcaster = tf2_ros.StaticTransformBroadcaster()
-        static_transformStamped = geometry_msgs.msg.TransformStamped()
-        static_transformStamped.header.stamp = rospy.Time.now()
-        static_transformStamped.header.frame_id = "/world"
-        static_transformStamped.child_frame_id = "EE_goal_pose"
 
-        static_transformStamped.transform.translation = EE_goal_pose.position
-        static_transformStamped.transform.rotation = EE_goal_pose.orientation
-        #publish Goal pose
-        broadcaster.sendTransform(static_transformStamped)
-        #stop current movement
-        self.group.stop()
-        #clear the plan
-        self.clear_plan()
-        #wpose = self.group.get_current_pose()
+    def go_pose(self,pose_stamped):
+        #get pose in world frame
+        try:        
+            now = rospy.Time.now()
+            print(pose_stamped.header.frame_id)
+            self.transformer.waitForTransform(pose_stamped.header.frame_id,"/world", now,rospy.Duration(20.0))
+
+            pose_stamped = self.transformer.transformPose("/world",pose_stamped)
+            
+            EE_goal_pose = pose_stamped.pose
+            
+            static_transformStamped = geometry_msgs.msg.TransformStamped()
+            static_transformStamped.header.stamp = rospy.Time.now()
+            static_transformStamped.header.frame_id = "/world"
+            static_transformStamped.child_frame_id = "EE_goal_pose"
+
+            static_transformStamped.transform.translation = EE_goal_pose.position
+            static_transformStamped.transform.rotation = EE_goal_pose.orientation
+            #publish Goal pose
+            self.broadcaster.sendTransform(static_transformStamped)
+            #stop current movement
+            self.group.stop()
+            #clear the plan
+            self.clear_plan()
+            #wpose = self.group.get_current_pose()
+            
+            #Move it's Straight line trajectory can go between multiple points, however all moves are implimented point to point moves
+            #So only add one pose
+            self.add_plan_pose(EE_goal_pose)
+            
+            
+            #compute the trajectory
+            self.plan = self.compute_plan()
+            
+            #print("---------------------")
+            #print(len(self.plan.joint_trajectory.points))
+            #print("---------------------")
+            #Variables used to compute how close we are to the 
+            self.goal_pose = EE_goal_pose
+            self.finished_move = False
+            #start the motion
+            self.execute_plan()
+        except Exception as e:            
+            print(e)
+    def go_vision_viewpoint(self,vision_id,bin_id):
+        viewpoint_positions = ((0,0,0),(0,-0.15,0),(0,0.15,0),(-0.15,0,0))
+        viewpoint_rotations = np.array(((0,0,0),(-20,0,0),(20,0,0),(0,20,0)))
+        viewpoint_rotations = np.deg2rad(viewpoint_rotations)
         
-        #Move it's Straight line trajectory can go between multiple points, however all moves are implimented point to point moves
-        #So only add one pose
-        self.add_plan_pose(EE_goal_pose)
+        viewpoint_pose = geometry_msgs.msg.PoseStamped()
+        viewpoint_pose.header.stamp = rospy.Time.now()
+        viewpoint_pose.header.frame_id = "/" + bin_id
+        viewpoint_pose.pose.position.x = float(viewpoint_positions[vision_id][0])
+        viewpoint_pose.pose.position.y = float(viewpoint_positions[vision_id][1])
+        viewpoint_pose.pose.position.z = float(viewpoint_positions[vision_id][2])
+        quat = tf.transformations.quaternion_from_euler(viewpoint_rotations[vision_id][0],viewpoint_rotations[vision_id][1],viewpoint_rotations[vision_id][2])
+        viewpoint_pose.pose.orientation.x = quat[0]
+        viewpoint_pose.pose.orientation.y = quat[1]
+        viewpoint_pose.pose.orientation.z = quat[2]
+        viewpoint_pose.pose.orientation.w = quat[3]
+        self.go_pose(viewpoint_pose)
+        return viewpoint_pose
         
-        
-        #compute the trajectory
-        self.plan = self.compute_plan()
-        
-        #print("---------------------")
-        #print(len(self.plan.joint_trajectory.points))
-        #print("---------------------")
-        #Variables used to compute how close we are to the 
-        self.goal_pose = EE_goal_pose
-        self.finished_move = False
-        #start the motion
-        self.execute_plan()
 
     def go_waypoint(self,waypoint_id):
         #looks up waypoint and then perfroms straight line to it

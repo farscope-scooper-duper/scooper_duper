@@ -72,6 +72,7 @@ def get_waypoint_pose(waypoint_id):
         pose = bin_waypoint
     
     pose_stamped = PoseStamped()
+    pose_stamped.header.stamp = rospy.Time.now()
     pose_stamped.header.frame_id = "/base"
     pose_stamped.pose = pose
     return pose_stamped
