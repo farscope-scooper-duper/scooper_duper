@@ -20,7 +20,7 @@
     <include     if="$(arg real)" file="$(find scooper_duper)/launch/move_it_real.launch"/>
     <include unless="$(arg real)" file="$(find scooper_duper)/launch/move_it_simulation.launch"/>
 
-    <node     if="$(arg control)" name="control_loop" type="control_loop.py" pkg="scooper_duper"/>
-    <node unless="$(arg control)" name="control_loop" type="control_loop_spoof.py" pkg="scooper_duper"/>
+    <node     if="$(arg control)" name="control_loop" type="control_loop.py" pkg="scooper_duper" output="screen" launch-prefix="gnome-terminal -e"/>
+    <node unless="$(arg control)" name="control_loop" type="control_loop_spoof.py" pkg="scooper_duper" output="screen" launch-prefix="gnome-terminal -e"/>
 
 </launch>

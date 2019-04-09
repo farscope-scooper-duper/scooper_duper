@@ -13,6 +13,8 @@
 
 # - Send positions and poses to the motion executor, wait for response or break after limit
 
+import signal
+import sys
 import rospy
 import time
 from std_msgs.msg import String,Bool,Int8
@@ -20,6 +22,13 @@ from geometry_msgs.msg import Transform,Vector3,Quaternion
 from scooper_duper.msg import *
 from json_handler import *
 from motion_executor import motion_executor
+
+def signal_handler(sig, frame):
+    mex.shutdown()
+    print("Exit called")
+    sys.exit(0)
+
+signal.signal(signal.SIGINT, signal_handler)
 
 def c_loop_vision_callback(data):
     #rospy.loginfo("Control loop recieved data from topic items_in_view")

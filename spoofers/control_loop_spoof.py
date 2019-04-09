@@ -1,13 +1,24 @@
 #!/usr/bin/env python
 
+import signal
+import sys
 import rospy
 from std_msgs.msg import String,Bool,Int8
 from geometry_msgs.msg import Transform,Vector3,Quaternion
 from scooper_duper.msg import *
-#ItemList
+
+def signal_handler(sig, frame):
+    print("Exit called")
+    while(True):
+        print(".")
+    sys.exit(0)
+
+signal.signal(signal.SIGINT, signal_handler)
+
 def c_loop_vision_callback(data):
 	rospy.loginfo("Control loop recieved data from topic items_in_view");
 	rospy.loginfo(data);
+
 def c_loop_gripsensor_callback(data):
 	rospy.loginfo("Control loop recieved from topic grip_sensor");
 	rospy.loginfo(data);
