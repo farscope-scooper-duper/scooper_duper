@@ -40,10 +40,11 @@ print("Connection tests complete.")
 print("Running setup and calibration...")
 
 #Read in the pick file, set up world model.
-world_model = WorldModel('/home/farscope/catkin_ws/src/scooper_duper/pick_list.json')
+world_model = WorldModel('/home/julian/catkin_ws/src/scooper_duper/pick_list.json')
 
 #Set up ros communications
 rospy.init_node('control_loop', anonymous=True)
+
 finger_pos_pub = rospy.Publisher('finger_pos', Bool, queue_size=10)
 suction_state_pub = rospy.Publisher('suction_state', Bool, queue_size=10)
 suction_state_pub.publish(False)
@@ -60,6 +61,16 @@ mex = motion_executor()
 
 time_limit = 600
 
+
+waiting_for_input = True
+while waiting_for_input:
+    operator_input = raw_input("Move to starting joint config (sim only) Y/N: ")
+    if operator_input.lower() == "y":
+        waiting_for_input = False
+        mex.go_to_start()
+    elif operator_input.lower() == "n":
+        waiting_for_input = False
+
 #==Wait for operator's confirmation to start==
 operator_input = raw_input("Please type 'begin' to start operations: ")
 while (operator_input.lower() != "begin"):
@@ -69,7 +80,7 @@ run_time = time.time() #Start time of the full operation
 state = 'get_target_item'
 #TODO: probably makes more sense to update all the values at the start of this loop (these are the "where am I?" variables).
 #TODO: Have made assumption on grip_sensor: 0 if the gripper is open, 1 if the gripper is closed without an item, 2 if the item is closed with an item (3 if in motion?)
-while ((time.time() - run_time) < time_limit) and (len(world_model.pick_list) > 0): #For 10 minutes, or until everything's picked
+while ((time.time() - run_time) < time_limit) and (len(world_model.pick_list) > 0) and (not rospy.is_shutdown()): #For 10 minutes, or until everything's picked
     if (state == 'get_target_item'):
         target_item = world_model.pick_list[0]
         target_item_bin = world_model.bins_of(target_item)[0] #Only take the first item
@@ -185,11 +196,12 @@ while ((time.time() - run_time) < time_limit) and (len(world_model.pick_list) > 
             state = 'get_target_item'
     print(state)
     time.sleep(1)
-
+if rospy.is_shutdown():
+    print("Control loop aborted")    
 if ((time.time() - run_time) > time_limit):
     print("Out of time; %d items remaining to pick" % len(world_model.target_items()))
 else: #Not true - possibly some items were dropped
     print("All items picked successfully.")
-
+mex.shutdown()
 world_model.output_to_file('output.json')
 #TODO: User interaction to end operations
