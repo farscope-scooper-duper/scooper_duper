@@ -25,6 +25,7 @@ from motion_executor import motion_executor
 
 def signal_handler(sig, frame):
     mex.shutdown()
+    suction_state_pub.publish(False)
     print("Exit called")
     sys.exit(0)
 
@@ -67,8 +68,7 @@ rospy.Subscriber("grip_sensor", Int8 , c_loop_gripsensor_callback)
 rate = rospy.Rate(0.5) # 10hz
 
 #Setup default readings and variables
-global grip_contact
-grip_contact = False
+#TODO: Give initialisation values for everything so it doesn't mess up if the other nodes aren't transmitting yet
 mex = motion_executor()
 
 time_limit = 600
@@ -92,6 +92,9 @@ run_time = time.time() #Start time of the full operation
 state = 'get_target_item'
 #TODO: probably makes more sense to update all the values at the start of this loop (these are the "where am I?" variables).
 #TODO: Have made assumption on grip_sensor: 0 if the gripper is open, 1 if the gripper is closed without an item, 2 if the item is closed with an item (3 if in motion?)
+#TODO: Add back world model management.
+#TODO: Add back timing and attempt counters.
+
 while ((time.time() - run_time) < time_limit) and (len(world_model.pick_list) > 0) and (not rospy.is_shutdown()): #For 10 minutes, or until everything's picked
     if (state == 'get_target_item'):
         target_item = world_model.pick_list[0]
@@ -109,54 +112,23 @@ while ((time.time() - run_time) < time_limit) and (len(world_model.pick_list) > 
             state = 'get_target_item'
         elif (bin_reached == True):
             attempt_counter = 0 #Keeps track of the number of move-out-of-bin attempts (not grip attempts)
-            #state = 'move_to_viewpoints' #Demo below
-            #suction_state_pub.publish(True)
-            #suck_time = time.time()
-            mex.go_waypoint_mouth(target_item_bin)
-            state = 'move_to_mouth'
+            state = 'move_to_viewpoints'
+            viewpoint = 0
+            mex.go_vision_viewpoint(viewpoint, target_item_bin)
+            #state = 'look_and_shuffle'
         else:
-            suction_state_pub.publish(False)
             state = 'move_to_bin'
 
-    elif (state == 'move_to_mouth'):
-        mouth_reached = mex.check_complete()
-        if (mouth_reached == True):
-            suction_state_pub.publish(True)
-            mex.go_relative_pose((0.12,0,0),(0,0,0,1))
-            state = 'single_pick_down'
-        else:
-            state = 'move_to_mouth'
-
-    elif (state == 'single_pick_down'):
-        item_reached = mex.check_complete()
-        if (item_reached == True):
-            mex.go_relative_pose((-0.12,0,0),(0,0,0,1))
-            state = 'single_pick_up'
-        else:
-            state = 'single_pick_down'
-
-    elif (state == 'single_pick_up'):
-        up_reached = mex.check_complete()
-        if (up_reached == True):
-            suction_state_pub.publish(False)
-            world_model.pick_success(target_item)
-            state = 'get_target_item'
-        else:
-            state = 'single_pick_up'
-
-    elif (state == 'suction_demo'):
-        if ((time.time() - suck_time) < 3):
-            state = 'suction_demo'
-        else:
-            suction_state_pub.publish(False)
-            world_model.pick_failure(target_item)
-            state = 'get_target_item'
-
-    elif (state == 'move_to_viewpoints'): #TODO: Handling for multiple sequential viewpoints; handling for view check and shuffle
-        viewpoint_reached = True #TODO: update this with correct viewpoint reached signal (coords of bin plus offset)
+    elif (state == 'move_to_viewpoints'): #TODO: Handling for view check and shuffle
+        viewpoint_reached = mex.check_complete()
         if (viewpoint_reached == True):
-            time.sleep(2)         
-            state = 'look_and_shuffle'
+            time.sleep(2)     
+            viewpoint = viewpoint + 1
+            if (viewpoint >= 4): #4 is number of viewpoints
+                state = 'look_and_shuffle'
+            else:
+                mex.go_vision_viewpoint(viewpoint, target_item_bin)
+                state = 'move_to_viewpoints'
         else:
             state = 'move_to_viewpoints'
 
@@ -164,58 +136,70 @@ while ((time.time() - run_time) < time_limit) and (len(world_model.pick_list) > 
         #Time and counter for the gripping operation
         op_time = time.time()
         op_counter = 0
-        state = 'move_to_item'
+        state = 'move_above_item'
+        #TODO: Move to the right place above the location indicated by the vision system.
+        mex.go_relative_pose((0,0,0.2), (0,0,0,1))
 
-    elif (state == 'move_to_item'): #TODO: Has to send actual move instruction (converted from the vision system's coordinates)
-        item_reached = False #TODO: update this with correct item reached signal
-        if (item_reached == True):
-            state = 'attempt_grip'
-        elif (time.time() - op_time < 10):
+    elif (state == 'move_above_item'): #TODO: Has to send actual move instruction (converted from the vision system's coordinates)
+        above_item = mex.check_complete()
+        if (above_item == True):
             suction_state_pub.publish(True)
-            #May need a delay
-            #Tell motion executor to lift
-            state = 'move_to_item'        
+            mex.go_relative_pose((0.12,0,0),(0,0,0,1)) ##TODO: WARNING - number is not correct in general
+            dip_stage = 0 #0 is down, 1 is up            
+            state = 'suction_dip'
         else:
-            world_model.pick_failure(target_item)
-            state = 'get_target_item'            
+            state = 'move_above_item'
+          
+    elif (state == 'suction_dip'):
+        reached = mex.check_complete()
+        if (reached == True):
+            if (dip_stage == 0):
+                dip_stage = 1
+                mex.go_relative_pose((-0.12,0,0),(0,0,0,1)) ##TODO: WARNING - number is not correct in general
+                state = 'suction_dip'
+            else:
+                finger_pos_pub.publish(True)
+                state = 'attempt_grip'
 
     elif (state == 'attempt_grip'):
-        lift_reached = True
-        if ((time.time() - op_time) > 100) or (op_counter >= 3):
+        #TODO: Add the timer stuff back in
+        if (op_counter >= 2):
             world_model.pick_failure(target_item)
-            state = 'get_target_item'
-        elif (lift_reached == False):
-            state = 'attempt_grip'
+            suction_state_pub.publish(False)
+            mex.go_waypoint(target_item_bin)
+            state = 'move_to_mouth'
+            #Move back to the bin mouth before moving to tote
         elif (grip_state == 0): #Open
-            finger_pos_pub.publish(True)
             state = 'attempt_grip'
         elif (grip_state == 1): #Closed, no item
             finger_pos_pub.publish(False)
             suction_state_pub.publish(False)
             op_counter = op_counter + 1
-            state = 'move_to_item'
+            state = 'move_above_item'
+            #TODO: Going to need a check here so it doesn't move while the gripper's closing
         elif (grip_state == 2): #Closed, with item
             suction_state_pub.publish(False)
             state = 'move_to_mouth'
-        #elif (grip_state == 3): #Closing
-            #state = 'attempt_grip'
+            mex.go_waypoint(target_item_bin)
+        #elif (grip_state == 3): #Opening/closing
 
-    elif (state == 'move_to_mouth'): #TODO: Has to send actual move instruction (mouth location, from lookup)
-        mouth_reached = True #TODO: update with correct mouth reached signal        
+    elif (state == 'move_to_mouth'):
+        #TODO: The decision from here should depend on the grip state.
+        mouth_reached = mex.check_complete()  
         if (mouth_reached == False):
             state = 'move_to_mouth'
-        elif (grip_contact == True):
-            world_model.remove_item_from_bin(target_item, target_item_bin)
-            state = 'move_to_tote'
-        elif (attempt_counter < 3):
-            attempt_counter = attempt_counter +1
-            state = 'look_and_shuffle'
-        else:
-            world_model.pick_failure(target_item)
+        elif (grip_state == 0): #Open - means there's been a bad pick, we'll need to try again
             state = 'get_target_item'
+        elif (grip_state == 1): #Closed, no item - mean's the item's been dropped
+            pass
+        elif (grip_state == 2): #Closed, item - all good, go to tote
+            #mex.go_waypoint('tote') #Not yet - tote doesn't exist
+            #state = 'move_to_tote'
+            pass
 
     elif (state == 'move_to_tote'): #TODO: Has to send actual move instruction (tote location, from lookup)
         tote_reached = True #TODO: update with correct tote-reached signal
+        #TODO: grip_state not grip_contact
         if (tote_reached == False):
             state = 'move_to_tote'
         elif (grip_contact == True):
@@ -244,3 +228,12 @@ else: #Not true - possibly some items were dropped
 mex.shutdown()
 world_model.output_to_file('output.json')
 #TODO: User interaction to end operations
+
+#Move in front of bin
+#Perform vision sweep
+#Move in front of bin
+#Go to above item
+#Go down, suction
+#Go up, grip close, suction off
+#Move in front of bin
+#Move to tote

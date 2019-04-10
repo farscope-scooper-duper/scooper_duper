@@ -15,14 +15,14 @@ def spoofer():
 
     rate = rospy.Rate(1.1)
 
-    state = 0
+    state = 1
 
     while not rospy.is_shutdown():
         grip_sensor_pub.publish(state)
         
-        state = state + 1
-        if state >= 4:
-          state = 0
+        #state = state + 1
+        #if state >= 4:
+        #  state = 0
         rospy.loginfo("Grip sensor state output to grip_sensor")
  
         rate.sleep()

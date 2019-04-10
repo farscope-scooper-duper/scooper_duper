@@ -256,12 +256,24 @@ class motion_executor():
         current_pose = self.transformer.transformPose("/world",current_pose_stamped).pose
         #print(self.goal_pose)
         #print(current_pose)
-        tolerance = 0.02
+        tolerance = 0.0075
+        #tolerance = 0.009
+        o_tolerance = 0.001
+        #o_tolerance = 0.009
         x_close = abs(self.goal_pose.position.x - current_pose.position.x)# < tolerance
         y_close = abs(self.goal_pose.position.y - current_pose.position.y)# < tolerance
         z_close = abs(self.goal_pose.position.z - current_pose.position.z)# < tolerance
         #
-        return (np.sqrt(x_close**2+y_close**2+z_close**2) < tolerance) #(x_close and y_close and z_close) #all_close(self.goal_pose.position, current_pose.position,0.03)
+        goal_orientation = [self.goal_pose.orientation.x, self.goal_pose.orientation.y, self.goal_pose.orientation.z, self.goal_pose.orientation.w]
+        current_orientation = [current_pose.orientation.x, current_pose.orientation.y, current_pose.orientation.z, current_pose.orientation.w]
+        o_x_close = abs(self.goal_pose.orientation.x - current_pose.orientation.x)
+        o_y_close = abs(self.goal_pose.orientation.y - current_pose.orientation.y)
+        o_z_close = abs(self.goal_pose.orientation.z - current_pose.orientation.z)
+        o_w_close = abs(self.goal_pose.orientation.w - current_pose.orientation.w)
+        print("EE pose error position: " + str((np.sqrt(x_close**2+y_close**2+z_close**2))))
+        print("EE pose error orientation: " + str(abs(np.dot(goal_orientation, current_orientation))))
+                
+        return (np.sqrt(x_close**2+y_close**2+z_close**2) < tolerance) and (abs(np.dot(goal_orientation, current_orientation)) > 1 - o_tolerance) #(x_close and y_close and z_close) #all_close(self.goal_pose.position, current_pose.position,0.03)
 
     def go_to_joint_config(self,joint_goal):
         #Performs a blocking joint move
@@ -276,6 +288,7 @@ class motion_executor():
 
     def add_plan_pose(self,pose):
         #Appends pose to the the plan, pose should be relative to the world frame
+        
         self.waypoints.append(copy.deepcopy(pose))
 
     def compute_plan(self):
@@ -292,9 +305,11 @@ class motion_executor():
         rospy.sleep(0.5) 
     def go_pose(self,pose_stamped):
         #get pose in world frame
-        try:        
+        try: 
+            print("Mex Moving to pose:")
+            print(pose_stamped.header.frame_id)     
             now = rospy.Time.now()
-            print(pose_stamped.header.frame_id)
+            
             self.transformer.waitForTransform(pose_stamped.header.frame_id,"/world", now,rospy.Duration(20.0))
 
             pose_stamped = self.transformer.transformPose("/world",pose_stamped)
@@ -312,10 +327,12 @@ class motion_executor():
             self.broadcaster.sendTransform(static_transformStamped)
             #stop current movement
             self.group.stop()
+            #Just a little pause
+            rospy.sleep(0.1)
             #clear the plan
             self.clear_plan()
-            #wpose = self.group.get_current_pose()
-            
+            wpose = self.group.get_current_pose().pose
+            #self.add_plan_pose(wpose)
             #Move it's Straight line trajectory can go between multiple points, however all moves are implemented point to point moves
             #So only add one pose
             self.add_plan_pose(EE_goal_pose)
@@ -343,8 +360,9 @@ class motion_executor():
         self.go_pose(relative_pose)
     
     def go_vision_viewpoint(self,vision_id,bin_id):
-        viewpoint_positions = ((0,0,0),(0,-0.15,0),(0,0.15,0),(-0.15,0,0))
-        viewpoint_rotations = np.array(((0,0,0),(-20,0,0),(20,0,0),(0,20,0)))
+        print("Going to viewpoint:" + str(vision_id))
+        viewpoint_positions = ((0,-0.15,0),(0,0.15,0),(-0.15,0,0), (0,0,0))
+        viewpoint_rotations = np.array(((-20,0,0),(20,0,0),(0,20,0),(0,0,0)))
         viewpoint_rotations = np.deg2rad(viewpoint_rotations)
         
         viewpoint_pose = geometry_msgs.msg.PoseStamped()
@@ -358,7 +376,7 @@ class motion_executor():
         viewpoint_pose.pose.orientation.y = quat[1]
         viewpoint_pose.pose.orientation.z = quat[2]
         viewpoint_pose.pose.orientation.w = quat[3]
-       
+        self.go_pose(viewpoint_pose)
         return viewpoint_pose
         
     def go_waypoint_mouth(self,bin_id): #Moves to the bin mouth corresponding to bin_id (15cm forward of bin_id's waypoint).
