@@ -44,6 +44,9 @@ def c_loop_gripsensor_callback(data):
 #==Test routine==
 print("Running connection tests...")
 print("Connection tests complete.")
+#waitfortopic("grip_sensor")
+#waitfortopic("vacuum sensor")
+#waitfortopic("vision_system")
 
 #==Calibration and setup==
 print("Running setup and calibration...")

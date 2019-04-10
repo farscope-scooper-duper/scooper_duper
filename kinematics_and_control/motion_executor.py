@@ -5,7 +5,7 @@ from std_msgs.msg import String,Bool,Int8
 from geometry_msgs.msg import Transform,Vector3,Quaternion
 from scooper_duper.msg import *
 from waypoint_lookup import get_waypoint_pose as get_waypoint_pose
-
+import shelf_config
 import numpy as np
 # because of transformations
 import tf
@@ -101,7 +101,7 @@ class motion_executor():
         #Listener for various transforms allows us to convert between various frames
         self.transformer = tf.TransformListener(True,rospy.Duration(10.0))#self.tf_buffer)
         #Build the shelfs at (x,y,z) (in world frame)
-        self.build_scene((0.448,-1.11,1.75-0.77))
+        self.build_scene(shelf_config.shelving_position)
         self.clear_plan()
     
     def shutdown(self):
@@ -176,34 +176,30 @@ class motion_executor():
         #Pose of each shelf
         shelf_pose = geometry_msgs.msg.PoseStamped()
         shelf_pose.header.frame_id = "shelves"
-        shelf_depth = 0.590
-        shelf_width = 0.89
-        shelf_height = 0.075
-        shelf_separation = 0.32 
+
         #building the middle shelves
         for i in range(5):
-            shelf_pose.pose.position.x = -shelf_width/2
-            shelf_pose.pose.position.y = -shelf_depth/2
-            shelf_pose.pose.position.z = -i*shelf_separation- shelf_height/2
+            shelf_pose.pose.position.x = -shelf_config.shelf_width/2
+            shelf_pose.pose.position.y = -shelf_config.shelf_depth/2
+            shelf_pose.pose.position.z = -i*shelf_config.shelf_separation- shelf_config.shelf_height/2
             shelf_pose.pose.orientation.w = 1
             shelf_name = "mid_shelf"+str(i)
-            self.scene.add_box(shelf_name, shelf_pose, size=(shelf_width, shelf_depth, shelf_height))
+            self.scene.add_box(shelf_name, shelf_pose, size=(shelf_config.shelf_width, shelf_config.shelf_depth,shelf_config.shelf_height))
             #if successful in building shelves every planning box will of been added to the scene
             success = success and wait_for_state_update(self.scene,box_name = shelf_name,box_is_known=True,timeout=2)
             
         #Side of shelving
         side_pose = geometry_msgs.msg.PoseStamped()
         side_pose.header.frame_id = "shelves"
-        side_width = 0.04
-        side_height = 1.75
+
         for i in (0,1):
-            side_pose.pose.position.x = -i*shelf_width + (i-0.5)*2*side_width/2
-            side_pose.pose.position.y = -shelf_depth/2
-            side_pose.pose.position.z = -side_height/2 #-2.5*0.32
+            side_pose.pose.position.x = -i*shelf_config.shelf_width + (i-0.5)*2*shelf_config.side_width/2
+            side_pose.pose.position.y = -shelf_config.shelf_depth/2
+            side_pose.pose.position.z = -shelf_config.side_height/2 #-2.5*0.32
             
             side_pose.pose.orientation.w = 1
             shelf_name = "side_shelf"+str(i+1)
-            self.scene.add_box(shelf_name, side_pose, size=(side_width, shelf_depth, side_height))
+            self.scene.add_box(shelf_name, side_pose, size=(shelf_config.side_width, shelf_config.shelf_depth, shelf_config.side_height))
             success = success and wait_for_state_update(self.scene,box_name = shelf_name,box_is_known=True,timeout=2)
 
         
@@ -326,7 +322,7 @@ class motion_executor():
             #compute the trajectory
             self.plan = self.compute_plan()
             
-            #print("---------------------")
+            #print("--- self.go_pose(viewpoint_pose)------------------")
             #print(len(self.plan.joint_trajectory.points))
             #print("---------------------")
             #Variables used to compute how close we are to the 
@@ -336,7 +332,15 @@ class motion_executor():
             self.execute_plan()
         except Exception as e:            
             print(e)
-
+    def go_relative_pose(self, position,orientation):
+        relative_pose = geometry_msgs.msg.PoseStamped()
+        relative_pose.header.stamp = rospy.Time.now()
+        relative_pose.header.frame_id = "/ee_link"
+        relative_pose.pose.position =  geometry_msgs.msg.Vector3(*position)
+        #quat = tf.transformations.quaternion_from_euler(viewpoint_rotations[vision_id][0],viewpoint_rotations[vision_id][1],viewpoint_rotations[vision_id][2])
+        relative_pose.pose.orientation =  geometry_msgs.msg.Quaternion(*orientation)
+        self.go_pose(relative_pose)
+    
     def go_vision_viewpoint(self,vision_id,bin_id):
         viewpoint_positions = ((0,0,0),(0,-0.15,0),(0,0.15,0),(-0.15,0,0))
         viewpoint_rotations = np.array(((0,0,0),(-20,0,0),(20,0,0),(0,20,0)))
@@ -353,7 +357,7 @@ class motion_executor():
         viewpoint_pose.pose.orientation.y = quat[1]
         viewpoint_pose.pose.orientation.z = quat[2]
         viewpoint_pose.pose.orientation.w = quat[3]
-        self.go_pose(viewpoint_pose)
+       
         return viewpoint_pose
         
     def go_waypoint_mouth(self,bin_id): #Moves to the bin mouth corresponding to bin_id (15cm forward of bin_id's waypoint).
@@ -380,11 +384,15 @@ if __name__ == '__main__':
         rospy.init_node('move_group_python_interface_tutorial',
                        anonymous=True)
         m = motion_executor()
-        m.go_to_start()
-        #rospy.sleep(1)        
+        #m.go_to_start()
+        rospy.sleep(1)        
         #m.go_waypoint("tote")
         #rospy.sleep(8)
         m.go_waypoint("bin_A")
+        rospy.sleep(6)        
+        m.go_waypoint_mouth("bin_A")
+        rospy.sleep(6)
+        m.go_relative_pose((0.12,0,0),(0,0,0,1))
        # m.go_into_bin()
         #while rospy.:
            # print(m.check_complete())
