@@ -52,7 +52,7 @@ print("Connection tests complete.")
 print("Running setup and calibration...")
 
 #Read in the pick file, set up world model.
-world_model = WorldModel('/home/farscope/catkin_ws/src/scooper_duper/pick_list.json')
+world_model = WorldModel('/home/farscope/catkin_ws/src/scooper_duper/single_pick.json')
 
 #Set up ros communications
 rospy.init_node('control_loop', anonymous=True)
@@ -110,12 +110,39 @@ while ((time.time() - run_time) < time_limit) and (len(world_model.pick_list) > 
         elif (bin_reached == True):
             attempt_counter = 0 #Keeps track of the number of move-out-of-bin attempts (not grip attempts)
             #state = 'move_to_viewpoints' #Demo below
-            suction_state_pub.publish(True)
-            suck_time = time.time()
-            state = 'suction_demo'
+            #suction_state_pub.publish(True)
+            #suck_time = time.time()
+            mex.go_waypoint_mouth(target_item_bin)
+            state = 'move_to_mouth'
         else:
             suction_state_pub.publish(False)
             state = 'move_to_bin'
+
+    elif (state == 'move_to_mouth'):
+        mouth_reached = mex.check_complete()
+        if (mouth_reached == True):
+            suction_state_pub.publish(True)
+            mex.go_relative_pose((0.12,0,0),(0,0,0,1))
+            state = 'single_pick_down'
+        else:
+            state = 'move_to_mouth'
+
+    elif (state == 'single_pick_down'):
+        item_reached = mex.check_complete()
+        if (item_reached == True):
+            mex.go_relative_pose((-0.12,0,0),(0,0,0,1))
+            state = 'single_pick_up'
+        else:
+            state = 'single_pick_down'
+
+    elif (state == 'single_pick_up'):
+        up_reached = mex.check_complete()
+        if (up_reached == True):
+            suction_state_pub.publish(False)
+            world_model.pick_success(target_item)
+            state = 'get_target_item'
+        else:
+            state = 'single_pick_up'
 
     elif (state == 'suction_demo'):
         if ((time.time() - suck_time) < 3):

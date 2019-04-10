@@ -216,7 +216,6 @@ class motion_executor():
         #excute linear motion without blocking    
         self.group.execute(self.plan, wait=False)
 
-
     def print_pose(self):
         #prints the current pose of the end effector link relative to various frames
         current_pose_world = self.group.get_current_pose()
@@ -258,12 +257,11 @@ class motion_executor():
         #print(self.goal_pose)
         #print(current_pose)
         tolerance = 0.02
-        x_close = abs(self.goal_pose.position.x - current_pose.position.x) < tolerance
-        y_close = abs(self.goal_pose.position.y - current_pose.position.y) < tolerance
-        z_close = abs(self.goal_pose.position.z - current_pose.position.z) < tolerance
-        return (x_close and y_close and z_close) #all_close(self.goal_pose.position, current_pose.position,0.03)
-
-
+        x_close = abs(self.goal_pose.position.x - current_pose.position.x)# < tolerance
+        y_close = abs(self.goal_pose.position.y - current_pose.position.y)# < tolerance
+        z_close = abs(self.goal_pose.position.z - current_pose.position.z)# < tolerance
+        #
+        return (np.sqrt(x_close**2+y_close**2+z_close**2) < tolerance) #(x_close and y_close and z_close) #all_close(self.goal_pose.position, current_pose.position,0.03)
 
     def go_to_joint_config(self,joint_goal):
         #Performs a blocking joint move
@@ -287,7 +285,11 @@ class motion_executor():
         #Re scale trajectory velocity, typical value 0.05
         plan = self.group.retime_trajectory(self.robot.get_current_state(),plan, 0.05);
         return plan
-
+    def wait_till_complete(self):    
+        while (not self.check_complete() and not rospy.is_shutdown()):
+            rospy.sleep(0.1)      
+        return
+        rospy.sleep(0.5) 
     def go_pose(self,pose_stamped):
         #get pose in world frame
         try:        
@@ -327,7 +329,6 @@ class motion_executor():
             #print("---------------------")
             #Variables used to compute how close we are to the 
             self.goal_pose = EE_goal_pose
-            self.finished_move = False
             #start the motion
             self.execute_plan()
         except Exception as e:            
@@ -361,7 +362,7 @@ class motion_executor():
         return viewpoint_pose
         
     def go_waypoint_mouth(self,bin_id): #Moves to the bin mouth corresponding to bin_id (15cm forward of bin_id's waypoint).
-        mouth_offset = (0.0, 0.0, 0.5)
+        mouth_offset = (0.0, 0.0, 0.09)
         mouth_pose = geometry_msgs.msg.PoseStamped()
         mouth_pose.header.stamp = rospy.Time.now()
         mouth_pose.header.frame_id = "/" + bin_id
@@ -385,14 +386,18 @@ if __name__ == '__main__':
                        anonymous=True)
         m = motion_executor()
         #m.go_to_start()
-        rospy.sleep(1)        
+        #m.wait_till_complete()        
         #m.go_waypoint("tote")
         #rospy.sleep(8)
-        m.go_waypoint("bin_A")
-        rospy.sleep(6)        
-        m.go_waypoint_mouth("bin_A")
-        rospy.sleep(6)
-        m.go_relative_pose((0.12,0,0),(0,0,0,1))
+       # m.go_waypoint("bin_A")
+       # m.wait_till_complete()           
+       # m.go_waypoint_mouth("bin_A")
+       # m.wait_till_complete()    
+       # m.go_relative_pose((0.12,0,0),(0,0,0,1))
+       # m.wait_till_complete()  
+       # rospy.sleep(2)
+       # m.go_relative_pose((-0.12,0,0),(0,0,0,1))
+
        # m.go_into_bin()
         #while rospy.:
            # print(m.check_complete())
@@ -406,4 +411,6 @@ if __name__ == '__main__':
 
         rospy.spin()
     except rospy.ROSInterruptException:
+        m.shutdown()
         pass
+

@@ -1,10 +1,10 @@
 {
     "bin_contents": {
         "bin_A": [
+            "crayola_64_ct", 
             "mommys_helper_outlet_plugs"
         ], 
         "bin_B": [
-            "crayola_64_ct", 
             "kong_duck_dog_toy"
         ], 
         "bin_C": [
@@ -49,60 +49,5 @@
         "floor": [], 
         "tote": []
     }, 
-    "work_order": [
-        {
-            "bin": [
-                "bin_B"
-            ], 
-            "item": "kong_duck_dog_toy"
-        }, 
-        {
-            "bin": [
-                "bin_C"
-            ], 
-            "item": "stanley_66_052"
-        }, 
-        {
-            "bin": [
-                "bin_D"
-            ], 
-            "item": "genuine_joe_plastic_stir_sticks"
-        }, 
-        {
-            "bin": [
-                "bin_E"
-            ], 
-            "item": "paper_mate_12_count_mirado_black_warrior"
-        }, 
-        {
-            "bin": [
-                "bin_F"
-            ], 
-            "item": "kong_sitting_frog_dog_toy"
-        }, 
-        {
-            "bin": [
-                "bin_G"
-            ], 
-            "item": "mead_index_cards"
-        }, 
-        {
-            "bin": [
-                "bin_H"
-            ], 
-            "item": "munchkin_white_hot_duck_bath_toy"
-        }, 
-        {
-            "bin": [
-                "bin_I"
-            ], 
-            "item": "first_years_take_and_toss_straw_cup"
-        }, 
-        {
-            "bin": [
-                "bin_A"
-            ], 
-            "item": "mommys_helper_outlet_plugs"
-        }
-    ]
+    "work_order": []
 }
