@@ -3,14 +3,13 @@
 import sys, os
 sys.path.append(os.path.join(os.path.dirname(sys.path[0]),''))
 #sys.path.append("/home/julian/catkin_ws/src/scooper_duper")
-
-for p in sys.path:
-    print(p)
 import rospy
 from std_msgs.msg import String,Bool,Int8
 from geometry_msgs.msg import Transform,Vector3,Quaternion
 from scooper_duper.msg import *
 from waypoint_lookup import get_waypoint_pose as get_waypoint_pose
+from trajectory_msgs.msg import JointTrajectory,JointTrajectoryPoint
+
 import shelf_config
 import numpy as np
 # because of transformations
@@ -327,8 +326,8 @@ class motion_executor():
         orientation_error = abs(np.dot(goal_orientation, current_orientation))
         orientation_close = (orientation_error > 1 - o_tolerance) 
 
-        print("EE pose error position: "  + str(position_error) + "("+str(position_close)+")")
-        print("EE pose error orientation: "+ str(orientation_error) + "("+str(orientation_close)+")")
+        #print("EE pose error position: "  + str(position_error) + "("+str(position_close)+")")
+        #print("EE pose error orientation: "+ str(orientation_error) + "("+str(orientation_close)+")")
                 
         return position_close and orientation_close #(x_close and y_close and z_close) #all_close(self.goal_pose.position, current_pose.position,0.03)
 
@@ -366,7 +365,7 @@ class motion_executor():
         rospy.sleep(0.5) 
     def go_pose(self,pose_stamped):
         #get pose in world frame
-        try: 
+        #try: 
             #print("Mex Moving to pose:")
             #print(pose_stamped.header.frame_id)     
             now = rospy.Time.now()
@@ -397,21 +396,38 @@ class motion_executor():
                 self.clear_plan()
                 #wpose = self.group.get_current_pose().pose
                 #self.add_plan_pose(wpose)
-                
                 #Moveit's Straight line trajectory can go between multiple points, however all moves are implemented point to point moves
                 #So only add one pose
                 self.add_plan_pose(self.goal_pose)
                 #compute the trajectory
                 self.plan = self.compute_plan()
-                self.robot
+
+                
+                #################Fixes "start point deviates from current robot state " bug #########################
+                                
+                next_p = self.plan.joint_trajectory.points[1]
+                time_s = next_p.time_from_start 
+                start_time = self.plan.joint_trajectory.points[0].time_from_start
+                current_state = self.group.get_current_joint_values()
+                current_state_msg = JointTrajectoryPoint()
+                current_state_msg.positions = current_state
+                current_state_msg.velocities = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+                current_state_msg.time_from_start = time_s/3               
+
+                self.plan.joint_trajectory.points[0].time_from_start = time_s/3*2
+                self.plan.joint_trajectory.points.insert(0,current_state_msg)
+                
+                
+                        #print(self.plan)                
+                #self.robot
                 #print("--- self.go_pose(viewpoint_pose)------------------")
                 #print(len(self.plan.joint_trajectory.points))
                 #print("---------------------")
                 #Variables used to compute how close we are to the 
                 #start the motion
                 self.execute_plan()
-        except Exception as e:            
-            print(e)
+        #except Exception as e:            
+         #   print(e)
     def go_relative_pose(self, position,orientation):
         relative_pose = geometry_msgs.msg.PoseStamped()
         relative_pose.header.stamp = rospy.Time.now()
@@ -486,14 +502,14 @@ if __name__ == '__main__':
         #    waypoint = raw_input("enter waypoint");        
         #    m.go_waypoint(waypoint)       
             #no moveit bug
-            #print("------------A------------")                            
-            #m.wait_till_complete("bin_A")     
-            #print("------------F------------")                         
-            #m.wait_till_complete("bin_F")                              
-            #print("------------C------------")
-            #m.wait_till_complete("bin_C")                              
-            #print("------------G------------")
-            #m.wait_till_complete("bin_G")
+            print("------------A------------")                            
+            m.wait_till_complete("bin_A")     
+            print("------------F------------")                         
+            m.wait_till_complete("bin_F")                              
+            print("------------C------------")
+            m.wait_till_complete("bin_C")                              
+            print("------------G------------")
+            m.wait_till_complete("bin_G")
             #moveit bug
             #m.go_waypoint("bin_A")
             #m.wait_till_complete()

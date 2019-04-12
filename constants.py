@@ -11,4 +11,4 @@ DIP_TIME_LIMIT = 10 #Seconds
 
 VISION_LOOK_TIME = 0#Seconds
 
-SPEED_SCALE = 1
+SPEED_SCALE = 0.5 #0.05 For real motions

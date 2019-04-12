@@ -2,11 +2,13 @@
 
 from __future__ import print_function
 import signal
-import sys
+import sys,os
 import rospy
 import time
+#Add directory above to python path to locate constants.py
+sys.path.append(os.path.join(os.path.dirname(sys.path[0]),''))
 
-sys.path.append("/home/farscope/catkin_ws/src/scooper_duper")
+#sys.path.append("/home/julian/catkin_ws/src/scooper_duper")
 
 from std_msgs.msg import String,Bool,Int8
 from geometry_msgs.msg import Transform,Vector3,Quaternion
@@ -44,7 +46,8 @@ print("Connection tests complete.")
 print("Running setup and calibration...")
 
 #Read in the pick file, set up world model.
-world_model = WorldModel('/home/farscope/catkin_ws/src/scooper_duper/pick_list.json')
+
+world_model = WorldModel( os.path.join(os.path.dirname(sys.path[0]),'pick_list.json'))
 
 
 #Set up ros communications
