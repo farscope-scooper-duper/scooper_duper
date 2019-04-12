@@ -6,7 +6,7 @@
     <arg name="control" default="true"/>
 
     <!-- Non-spoofing gripper not yet implemented. -->
-    <node unless="$(arg gripper)" name="gripper" type="gripper_spoof.py" pkg="scooper_duper" output="screen" launch-prefix="gnome-terminal -e"/>
+    <node unless="$(arg gripper)" name="gripper" type="gripper_spoof.py" pkg="scooper_duper"/>
 
     <node unless="$(arg suction)" name="vacuum" type="vacuum_spoof.py" pkg="scooper_duper"/>
     <node     if="$(arg suction)" name="serial_node" type="serial_node.py" pkg="rosserial_python">
