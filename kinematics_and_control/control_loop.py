@@ -19,6 +19,8 @@ def signal_handler(sig, frame):
     mex.shutdown()
     suction_state_pub.publish(False)
     print("Exit called")
+    world_model.output_to_file('ctrlc.json')
+    print("Output to file")
     sys.exit(0)
 
 signal.signal(signal.SIGINT, signal_handler)
@@ -149,7 +151,7 @@ while ((time.time() - run_time) < RUN_TIME_LIMIT) and (len(world_model.pick_list
             finger_pos_pub.publish(False)
             state = 'move_to_viewpoints'
         elif (viewpoint_reached == True):
-            time.sleep(2)     
+            time.sleep(VISION_LOOK_TIME)     
             viewpoint = viewpoint + 1
             if (viewpoint >= NUMBER_OF_VIEWPOINTS):
                 state = 'look_and_shuffle'

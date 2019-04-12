@@ -27,6 +27,7 @@ from moveit_commander.conversions import pose_to_list
 import sys
 import copy
 
+from constants import *
 
 
 def all_close(goal, actual, tolerance):
@@ -296,7 +297,7 @@ class motion_executor():
         #Produce straight line move plan
         (plan, fraction) = self.group.compute_cartesian_path(self.waypoints, 0.01,0)         # jump_threshold
         #Re scale trajectory velocity, typical value 0.05
-        plan = self.group.retime_trajectory(self.robot.get_current_state(),plan, 0.05);
+        plan = self.group.retime_trajectory(self.robot.get_current_state(),plan, SPEED_SCALE);
         return plan
     def wait_till_complete(self):    
         while (not self.check_complete() and not rospy.is_shutdown()):

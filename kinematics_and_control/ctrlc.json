@@ -4,6 +4,7 @@
             "mommys_helper_outlet_plugs"
         ], 
         "bin_B": [
+            "crayola_64_ct", 
             "kong_duck_dog_toy"
         ], 
         "bin_C": [
@@ -46,9 +47,56 @@
             "feline_greenies_dental_treats"
         ], 
         "floor": [], 
-        "tote": [
-            "crayola_64_ct"
-        ]
+        "tote": []
     }, 
-    "work_order": []
+    "work_order": [
+        {
+            "bin": "bin_J", 
+            "item": "kong_air_dog_squeakair_tennis_ball"
+        }, 
+        {
+            "bin": "bin_K", 
+            "item": "elmers_washable_no_run_school_glue"
+        }, 
+        {
+            "bin": "bin_L", 
+            "item": "laugh_out_loud_joke_book"
+        }, 
+        {
+            "bin": "bin_A", 
+            "item": "mommys_helper_outlet_plugs"
+        }, 
+        {
+            "bin": "bin_B", 
+            "item": "kong_duck_dog_toy"
+        }, 
+        {
+            "bin": "bin_C", 
+            "item": "stanley_66_052"
+        }, 
+        {
+            "bin": "bin_D", 
+            "item": "genuine_joe_plastic_stir_sticks"
+        }, 
+        {
+            "bin": "bin_E", 
+            "item": "paper_mate_12_count_mirado_black_warrior"
+        }, 
+        {
+            "bin": "bin_F", 
+            "item": "kong_sitting_frog_dog_toy"
+        }, 
+        {
+            "bin": "bin_G", 
+            "item": "mead_index_cards"
+        }, 
+        {
+            "bin": "bin_H", 
+            "item": "munchkin_white_hot_duck_bath_toy"
+        }, 
+        {
+            "bin": "bin_I", 
+            "item": "first_years_take_and_toss_straw_cup"
+        }
+    ]
 }
