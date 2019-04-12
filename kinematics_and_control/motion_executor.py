@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 
+import sys
+sys.path.append("/home/julian/catkin_ws/src/scooper_duper")
 import rospy
 from std_msgs.msg import String,Bool,Int8
 from geometry_msgs.msg import Transform,Vector3,Quaternion
@@ -341,7 +343,7 @@ class motion_executor():
             
             #compute the trajectory
             self.plan = self.compute_plan()
-            
+            self.robot
             #print("--- self.go_pose(viewpoint_pose)------------------")
             #print(len(self.plan.joint_trajectory.points))
             #print("---------------------")
@@ -408,6 +410,7 @@ if __name__ == '__main__':
         #m.wait_till_complete()        
         #m.go_waypoint("tote")
         #rospy.sleep(8)
+
        # m.go_waypoint("bin_A")
        # m.wait_till_complete()           
        # m.go_waypoint_mouth("bin_A")
@@ -417,16 +420,37 @@ if __name__ == '__main__':
        # rospy.sleep(2)
        # m.go_relative_pose((-0.12,0,0),(0,0,0,1))
 
-       # m.go_into_bin()
-        #while rospy.:
-           # print(m.check_complete())
-            #rospy.sleep(1)
-        #rospy.sleep(8)
-        #m.go_waypoint("bin_B")
-        #rospy.sleep(8)
-        #m.go_waypoint("bin_A")
-        #rospy.sleep(5)
-        #m.go_waypoint("tote")
+        now = rospy.Time.now()
+        while(not rospy.is_shutdown()):
+        #    waypoint = raw_input("enter waypoint");        
+        #    m.go_waypoint(waypoint)                                   
+            m.go_waypoint("bin_A")
+            m.wait_till_complete()                                   
+            m.go_waypoint("bin_B")
+            m.wait_till_complete()                                   
+            m.go_waypoint("bin_C")
+            m.wait_till_complete()                                   
+            m.go_waypoint("bin_A")
+            m.wait_till_complete() 
+            m.go_waypoint("bin_F")
+            m.wait_till_complete()            
+#            m.wait_till_complete() 
+            #if ((rospy.Time.now().secs - now.secs) > 20):
+            #    print("B")                
+            #    m.go_waypoint("bin_B")
+            #    m.wait_till_complete() 
+            #    now = rospy.Time.now()
+            #else:
+            #    print("A")   
+            #    m.go_waypoint("bin_A")
+        #m.wait_till_complete()           
+        #m.go_waypoint_mouth("bin_A")
+        #m.wait_till_complete()    
+        #m.go_relative_pose((0.12,0,0),(0,0,0,1))
+        #m.wait_till_complete()  
+        #rospy.sleep(2)
+        #m.go_relative_pose((-0.12,0,0),(0,0,0,1))
+
 
         rospy.spin()
     except rospy.ROSInterruptException:
