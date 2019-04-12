@@ -1,11 +1,20 @@
 #!/usr/bin/env python
 
 import rospy
+import signal
+import sys
 from std_msgs.msg import String,Bool,Int8
 
+def signal_handler(sig, frame):
+    print("Exit called")
+    sys.exit(0)
+
+signal.signal(signal.SIGINT, signal_handler)
+
 def gripper_c_loop_callback(data):
-    rospy.loginfo("Gripper received data from finger pos")
-    rospy.loginfo(data)
+    pass
+    #rospy.loginfo("Gripper received data from finger pos")
+    #rospy.loginfo(data)
 
 def spoofer():
     rospy.init_node('gripper', anonymous=True)
@@ -16,13 +25,12 @@ def spoofer():
     rate = rospy.Rate(1.1)
 
     state = 1
+    grip_sensor_pub.publish(state)
 
     while not rospy.is_shutdown():
+        state = input("Set grip state: ")
         grip_sensor_pub.publish(state)
-        
-        #state = state + 1
-        #if state >= 4:
-        #  state = 0
+
         rospy.loginfo("Grip sensor state output to grip_sensor")
  
         rate.sleep()

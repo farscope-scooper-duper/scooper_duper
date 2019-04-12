@@ -13,6 +13,7 @@ def get_waypoint_pose(waypoint_id):
     bin_centre = -shelf_config.shelf_width/2
     bin_left = bin_centre + bin_width
     bin_right = bin_centre - bin_width
+    bin_double_left = bin_left + 2*bin_width
 
     shelf1_z = -(shelf_config.shelf_height+0.01)
     shelf2_z = shelf1_z - shelf_config.shelf_separation
@@ -23,9 +24,9 @@ def get_waypoint_pose(waypoint_id):
     move_plane_y = 0.71#-1.11+0.400
 
     #tote location
-    tote_x = bin_centre
+    tote_x = bin_double_left
     tote_y = move_plane_y
-    tote_z = 0.203
+    tote_z = shelf4_z
 
     #----------------------------end of bin frame config---------------------------------
     bin_waypoints = {
