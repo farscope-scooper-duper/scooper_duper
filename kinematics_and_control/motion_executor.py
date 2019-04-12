@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 import sys
-sys.path.append("/home/julian/catkin_ws/src/scooper_duper")
+sys.path.append("/home/farscope/catkin_ws/src/scooper_duper")
 import rospy
 from std_msgs.msg import String,Bool,Int8
 from geometry_msgs.msg import Transform,Vector3,Quaternion
