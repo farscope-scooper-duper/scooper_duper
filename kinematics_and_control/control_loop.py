@@ -19,7 +19,7 @@ def signal_handler(sig, frame):
     mex.shutdown()
     suction_state_pub.publish(False)
     print("Exit called")
-    world_model.output_to_file('ctrlc.json')
+    world_model.output_to_file('{}.json'.format(time.time()))
     print("Output to file")
     sys.exit(0)
 
