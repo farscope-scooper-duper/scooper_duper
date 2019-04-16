@@ -5,7 +5,7 @@
         <arg name="sim" value="false"/>
   </include>
 
-  <include file="$(find ur10_moveit_config)/launch/moveit_rviz.launch">
+  <include file="$(find scooper_duper)/launch/moveit_rviz.launch">
         <arg name="config" value="true"/>
   </include>
 
