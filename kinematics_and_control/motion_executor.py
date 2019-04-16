@@ -297,28 +297,19 @@ class motion_executor():
  
 
 
-    #def move_into_box(self,start_pose,dir):
-    def check_complete(self):
-        #Checks if current pose is cose to target position (within two cm)
-        #TODO should be really if last joint traj has been reached
+    def check_pose_close(self,goal_pose,tolerance,o_tolerance):
         current_pose_stamped = self.group.get_current_pose()
         current_pose = self.transformer.transformPose("/world",current_pose_stamped).pose
-        #print(self.goal_pose)
-        #print(current_pose)
-        tolerance = 0.0075
-        #tolerance = 0.009
-        o_tolerance = 0.001
-        #o_tolerance = 0.009
-        x_close = abs(self.goal_pose.position.x - current_pose.position.x)# < tolerance
-        y_close = abs(self.goal_pose.position.y - current_pose.position.y)# < tolerance
-        z_close = abs(self.goal_pose.position.z - current_pose.position.z)# < tolerance
+        x_close = abs(goal_pose.position.x - current_pose.position.x)
+        y_close = abs(goal_pose.position.y - current_pose.position.y)
+        z_close = abs(goal_pose.position.z - current_pose.position.z)
         #
-        goal_orientation = [self.goal_pose.orientation.x, self.goal_pose.orientation.y, self.goal_pose.orientation.z, self.goal_pose.orientation.w]
+        goal_orientation = [goal_pose.orientation.x, goal_pose.orientation.y, goal_pose.orientation.z, goal_pose.orientation.w]
         current_orientation = [current_pose.orientation.x, current_pose.orientation.y, current_pose.orientation.z, current_pose.orientation.w]
-        o_x_close = abs(self.goal_pose.orientation.x - current_pose.orientation.x)
-        o_y_close = abs(self.goal_pose.orientation.y - current_pose.orientation.y)
-        o_z_close = abs(self.goal_pose.orientation.z - current_pose.orientation.z)
-        o_w_close = abs(self.goal_pose.orientation.w - current_pose.orientation.w)
+        o_x_close = abs(goal_pose.orientation.x - current_pose.orientation.x)
+        o_y_close = abs(goal_pose.orientation.y - current_pose.orientation.y)
+        o_z_close = abs(goal_pose.orientation.z - current_pose.orientation.z)
+        o_w_close = abs(goal_pose.orientation.w - current_pose.orientation.w)
 
         position_error = np.sqrt(x_close**2+y_close**2+z_close**2)
         position_close = (position_error < tolerance)
@@ -326,10 +317,14 @@ class motion_executor():
         orientation_error = abs(np.dot(goal_orientation, current_orientation))
         orientation_close = (orientation_error > 1 - o_tolerance) 
 
-        #print("EE pose error position: "  + str(position_error) + "("+str(position_close)+")")
-        #print("EE pose error orientation: "+ str(orientation_error) + "("+str(orientation_close)+")")
+        print("EE pose error position: "  + str(position_error) + "("+str(position_close)+")")
+        print("EE pose error orientation: "+ str(orientation_error) + "("+str(orientation_close)+")")
                 
-        return position_close and orientation_close #(x_close and y_close and z_close) #all_close(self.goal_pose.position, current_pose.position,0.03)
+        return position_close and orientation_close #(x_close and y_close and z_close)
+    def check_complete(self):
+ #all_close(self.goal_pose.position, current_pose.position,0.03)
+       
+        return self.check_pose_close(self.goal_pose,tolerance = 0.00875,o_tolerance = 0.001)
 
     def go_to_joint_config(self,joint_goal):
         #Performs a blocking joint move
@@ -359,6 +354,7 @@ class motion_executor():
             rospy.sleep(0.1) 
             if waypoint_id <> '':
              m.go_waypoint(waypoint_id)   
+
             if self.check_complete():
                 break 
         return
@@ -367,27 +363,33 @@ class motion_executor():
         #get pose in world frame
         #try: 
             #print("Mex Moving to pose:")
-            #print(pose_stamped.header.frame_id)     
-            now = rospy.Time.now()
-            
-            self.transformer.waitForTransform(pose_stamped.header.frame_id,"/world", now,rospy.Duration(20.0))
+            #print(pose_stamped.header.frame_id)
+            #now = 
+            self.transformer.waitForTransform(pose_stamped.header.frame_id,"/world", rospy.Time.now(),rospy.Duration(20.0))
 
             pose_stamped = self.transformer.transformPose("/world",pose_stamped)
-            
-            self.goal_pose = pose_stamped.pose
-            
-            static_transformStamped = geometry_msgs.msg.TransformStamped()
-            static_transformStamped.header.stamp = rospy.Time.now()
-            static_transformStamped.header.frame_id = "/world"
-            static_transformStamped.child_frame_id = "EE_goal_pose"
+                
+            print("boop")
 
-            static_transformStamped.transform.translation = self.goal_pose.position
-            static_transformStamped.transform.rotation = self.goal_pose.orientation
-            #publish Goal pose
-            self.broadcaster.sendTransform(static_transformStamped)
+            if (not self.check_pose_close(pose_stamped.pose,0.00875,0.001) and self.goal_pose!=pose_stamped.pose):     
+                print(self.goal_pose)
+                print(pose_stamped.pose)
+
+                self.goal_pose = pose_stamped.pose
+                
+                static_transformStamped = geometry_msgs.msg.TransformStamped()
+                static_transformStamped.header.stamp = rospy.Time.now()
+                static_transformStamped.header.frame_id = "/world"
+                static_transformStamped.child_frame_id = "EE_goal_pose"
+
+                static_transformStamped.transform.translation = self.goal_pose.position
+                static_transformStamped.transform.rotation = self.goal_pose.orientation
+
+                            #publish Goal pose
+                self.broadcaster.sendTransform(static_transformStamped)
             
-            
-            if not self.check_complete():
+           
+                
                 #stop current movement
                 self.group.stop()
                 #Just a little pause
@@ -405,17 +407,18 @@ class motion_executor():
                 
                 #################Fixes "start point deviates from current robot state " bug #########################
                                 
-                next_p = self.plan.joint_trajectory.points[1]
-                time_s = next_p.time_from_start 
-                start_time = self.plan.joint_trajectory.points[0].time_from_start
+                #next_p = self.plan.joint_trajectory.points[1]
+                #time_s = next_p.time_from_start 
+                #start_time = self.plan.joint_trajectory.points[0].time_from_start
                 current_state = self.group.get_current_joint_values()
-                current_state_msg = JointTrajectoryPoint()
-                current_state_msg.positions = current_state
-                current_state_msg.velocities = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
-                current_state_msg.time_from_start = time_s/3               
+                #current_state_msg = JointTrajectoryPoint()
+                self.plan.joint_trajectory.points[0].positions = current_state
+                #self.plan.joint_trajectory.points[0].velocities = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+                #current_state_msg.velocities = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+                #current_state_msg.time_from_start = time_s/3               
 
-                self.plan.joint_trajectory.points[0].time_from_start = time_s/3*2
-                self.plan.joint_trajectory.points.insert(0,current_state_msg)
+                #self.plan.joint_trajectory.points[0].time_from_start = time_s/3*2
+                #self.plan.joint_trajectory.points.insert(0,current_state_msg)
                 
                 
                         #print(self.plan)                
@@ -426,8 +429,8 @@ class motion_executor():
                 #Variables used to compute how close we are to the 
                 #start the motion
                 self.execute_plan()
-        #except Exception as e:            
-         #   print(e)
+            #except Exception as e:            
+             #   print(e)
     def go_relative_pose(self, position,orientation):
         relative_pose = geometry_msgs.msg.PoseStamped()
         relative_pose.header.stamp = rospy.Time.now()
@@ -438,7 +441,7 @@ class motion_executor():
         self.go_pose(relative_pose)
     
     def go_vision_viewpoint(self,vision_id,bin_id):
-        print("Going to viewpoint:" + str(vision_id))
+        print("Going to viewpoint:" + str(vision_id) +" at " + bin_id)
         viewpoint_positions = ((0,-0.15,0),(0,0.15,0),(-0.15,0,0), (0,0,0))
         viewpoint_rotations = np.array(((-20,0,0),(20,0,0),(0,20,0),(0,0,0)))
         viewpoint_rotations = np.deg2rad(viewpoint_rotations)
@@ -473,7 +476,7 @@ class motion_executor():
         return mouth_pose
 
     def go_waypoint(self,waypoint_id):
-        print("going to waypoint: " + waypoint_id)
+        #print("going to waypoint: " + waypoint_id)
         #looks up waypoint and then perfroms straight line to it
         self.go_pose(get_waypoint_pose(waypoint_id))
 
@@ -483,7 +486,7 @@ if __name__ == '__main__':
                        anonymous=True)
         m = motion_executor()
         
-        m.go_to_start()
+        #m.go_to_start()
         #m.wait_till_complete()        
         #m.go_waypoint("tote")
         #rospy.sleep(8)
@@ -502,23 +505,25 @@ if __name__ == '__main__':
         #    waypoint = raw_input("enter waypoint");        
         #    m.go_waypoint(waypoint)       
             #no moveit bug
-            print("------------A------------")                            
-            m.wait_till_complete("bin_A")     
-            print("------------F------------")                         
-            m.wait_till_complete("bin_F")                              
-            print("------------C------------")
-            m.wait_till_complete("bin_C")                              
-            print("------------G------------")
-            m.wait_till_complete("bin_G")
-            #moveit bug
-            #m.go_waypoint("bin_A")
-            #m.wait_till_complete()
-            #m.go_waypoint("bin_F")
-            #m.wait_till_complete()
-            #m.go_waypoint("bin_C")
-            #m.wait_till_complete()
-            #m.go_waypoint("bin_G")
+            #print("------------A------------")                            
+            #m.wait_till_complete("bin_B") 
+            #m.go_vision_viewpoint(2,"bin_B")
             #m.wait_till_complete()    
+            #print("------------F------------")                         
+            #m.wait_till_complete("bin_F")                              
+            #print("------------C------------")
+            #m.wait_till_complete("bin_C")                              
+            #print("------------G------------")
+            #m.wait_till_complete("bin_G")
+            #moveit bug
+            m.go_waypoint("bin_A")
+            m.wait_till_complete()
+            m.go_waypoint("bin_C")
+            m.wait_till_complete()
+            m.go_waypoint("bin_F")
+            m.wait_till_complete()
+            m.go_waypoint("bin_C")
+            m.wait_till_complete()    
 
 #            m.wait_till_complete() 
             #if ((rospy.Time.now().secs - now.secs) > 20):
