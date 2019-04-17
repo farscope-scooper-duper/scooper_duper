@@ -10,6 +10,7 @@ project(scooper_duper)
 find_package(catkin REQUIRED COMPONENTS
   rospy
   std_msgs
+  geometry_msgs
   message_generation
 )
 
@@ -73,6 +74,7 @@ generate_messages(
   DEPENDENCIES
   scooper_duper
   std_msgs
+  geometry_msgs
 )
 
 ################################################
