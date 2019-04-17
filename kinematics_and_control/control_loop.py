@@ -5,6 +5,7 @@ import signal
 import sys,os
 import rospy
 import time
+import tf
 #Add directory above to python path to locate constants.py
 sys.path.append(os.path.join(os.path.dirname(sys.path[0]),''))
 
@@ -26,11 +27,27 @@ def signal_handler(sig, frame):
     sys.exit(0)
 
 signal.signal(signal.SIGINT, signal_handler)
+target_item_pose = None
+def vision_request():
+    global target_item_pose
+    target_item_pose = None
+    #publish required info to the vision system, target item, bin items etc.
+
+
+def get_item_position():
+    pose_stamped = PoseStamped()
+    pose_stamped.header.stamp = rospy.Time.now()
+    pose_stamped.header.frame_id = "/camera"
+    pose_stamped.pose = target_item_pose
+    mex.transformer.waitForTransform(pose_stamped.header.frame_id,"/world", rospy.Time.now(),rospy.Duration(20.0))
+    target_item_pose = mex.transformer.transformPose("/world",pose_stamped).pose
 
 def c_loop_vision_callback(data):
+    global target_item_pose
+    target_item_pose = data.items[0].pose
+    
     #rospy.loginfo("Control loop recieved data from topic items_in_view")
     #rospy.loginfo(data)
-    a = 1
 
 def c_loop_gripsensor_callback(data):
     #rospy.loginfo("Control loop recieved from topic grip_sensor")
@@ -57,7 +74,6 @@ finger_pos_pub = rospy.Publisher('finger_pos', Bool, queue_size=10)
 finger_pos_pub.publish(False)
 suction_state_pub = rospy.Publisher('suction_state', Bool, queue_size=10)
 suction_state_pub.publish(False)
-EE_pose_pub = rospy.Publisher('t_EE_pose', Transform, queue_size=10)
 
 rospy.Subscriber("items_in_view", ItemList , c_loop_vision_callback)
 rospy.Subscriber("grip_sensor", Int8 , c_loop_gripsensor_callback)
@@ -70,6 +86,7 @@ grip_state = rospy.wait_for_message("grip_sensor", Int8).data
 print("OK")
 print("Waiting for items_in_view (from Vision)...",end='')
 sys.stdout.flush()
+vision_request()
 rospy.wait_for_message("items_in_view", ItemList)
 print("OK")
 
@@ -185,6 +202,7 @@ while ((time.time() - run_time) < RUN_TIME_LIMIT) and (len(world_model.pick_list
             dip_counter = 0
             state = 'move_above_item'
             #TODO: Move to the right place above the location indicated by the vision system.
+            
             mex.go_relative_pose((0,0,0.2), (0,0,0,1))
 
     elif (state == 'move_above_item'): #TODO: Has to send actual move instruction (converted from the vision system's coordinates)

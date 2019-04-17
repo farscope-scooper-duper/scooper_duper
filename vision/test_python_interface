@@ -46,6 +46,7 @@ def spoofer():
         item1.location = 0
         trans = tf.transformations.translation_from_matrix(matrix)
         quat = tf.transformations.quaternion_from_matrix(matrix)
+        
         item1.pose.position.x = trans[0]
         item1.pose.position.y = trans[1]
         item1.pose.position.z = trans[2]

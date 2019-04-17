@@ -169,9 +169,32 @@ class motion_executor():
 
     def build_scene(self,shelf_pos):
         
+
+
+
+
+
+
+
         #publish shelf frame that is static, later make variable for calibration
         #sucker position relative to the end effector link
         tf_to_broadcast = []
+
+        camera_transform = geometry_msgs.msg.TransformStamped()
+        camera_transform.header.stamp = rospy.Time.now()
+        camera_transform.header.frame_id = "/ee_link"
+        camera_transform.child_frame_id = "/camera"
+        #Camera transform, GUESSED not calibrated
+        camera_transform.transform.translation.x = float(-0.05)
+        camera_transform.transform.translation.y = float(0)
+        camera_transform.transform.translation.z = float(0.05)
+        quat = tf.transformations.quaternion_from_euler(float(0),float(0),float(0))
+        camera_transform.transform.rotation.x = quat[0]
+        camera_transform.transform.rotation.y = quat[1]
+        camera_transform.transform.rotation.z = quat[2]
+        camera_transform.transform.rotation.w = quat[3]
+        tf_to_broadcast.append(camera_transform)
+
         gripper_transform = geometry_msgs.msg.TransformStamped()
         gripper_transform.header.stamp = rospy.Time.now()
         gripper_transform.header.frame_id = "ee_link"
