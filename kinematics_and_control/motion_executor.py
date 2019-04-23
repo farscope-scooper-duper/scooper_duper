@@ -16,6 +16,7 @@ import numpy as np
 import tf
 import math
 import tf2_ros
+
 #import sys
 #import copy
 #import rospy
@@ -87,6 +88,7 @@ class motion_executor():
         moveit_commander.roscpp_initialize(sys.argv)
         self.robot = moveit_commander.RobotCommander()
         self.scene = moveit_commander.PlanningSceneInterface()
+        self.addgrip = False
         #UR10's planning group name
         group_name = "manipulator"
         self.group = moveit_commander.MoveGroupCommander(group_name)
@@ -102,7 +104,7 @@ class motion_executor():
         #The positions shown on the robot's pendant are in the tool0 frame which is offset via the TCP setting when initialising the robot
         #print(self.planning_frame)
         self.goal_pose=geometry_msgs.msg.Pose()
-        #publishers for the shelf frame and gripper sucker frame
+
         self.broadcaster = tf2_ros.StaticTransformBroadcaster()
         #Listener for various transforms allows us to convert between various frames
         self.transformer = tf.TransformListener(True,rospy.Duration(10.0))#self.tf_buffer)
@@ -112,35 +114,35 @@ class motion_executor():
         self.clear_plan()
     
     def addgripper(self):
+        if self.addgrip == True:
+            #ee_link frame
+            # ----> (z towards shelves)
+            # |
+            # |
+            #\|/ (x towards floor)
+            #y
+            grip_box_width = 0.040
+            #x        
+            grip_box_height = 0.030
+            #z
+            grip_box_length = 0.650
+            gripper_box_pose = geometry_msgs.msg.PoseStamped()
+            gripper_box_pose.header.frame_id = "ee_link"
+            gripper_box_pose.pose.position.x = grip_box_height/2 
+            gripper_box_pose.pose.position.y = 0
+            gripper_box_pose.pose.position.z = grip_box_length/2+0.001
+            
 
-        #ee_link frame
-        # ----> (z towards shelves)
-        # |
-        # |
-        #\|/ (x towards floor)
-        #y
-        grip_box_width = 0.040
-        #x        
-        grip_box_height = 0.030
-        #z
-        grip_box_length = 0.650
-        gripper_box_pose = geometry_msgs.msg.PoseStamped()
-        gripper_box_pose.header.frame_id = "ee_link"
-        gripper_box_pose.pose.position.x = grip_box_height/2 
-        gripper_box_pose.pose.position.y = 0
-        gripper_box_pose.pose.position.z = grip_box_length/2+0.001
-        
+            grasping_group = 'endeffector'
+            self.touch_links = self.robot.get_link_names(group=grasping_group)
 
-        grasping_group = 'endeffector'
-        self.touch_links = self.robot.get_link_names(group=grasping_group)
-
-        self.scene.remove_world_object(self.grip_box_name)
-        wait_for_state_update(self.scene,box_name = self.grip_box_name ,box_is_known=False,timeout=2)
-        self.scene.add_box(self.grip_box_name, gripper_box_pose, size=(grip_box_height,grip_box_width,grip_box_length))
-        success = wait_for_state_update(self.scene,box_name = self.grip_box_name ,box_is_known=True,timeout=2)
-        self.scene.attach_box(self.group.get_end_effector_link(),self.grip_box_name, touch_links=self.touch_links)
-        success = success and wait_for_state_update(self.scene,box_name = self.grip_box_name ,box_is_known=False,box_is_attached = True,timeout=2)
-        return success
+            self.scene.remove_world_object(self.grip_box_name)
+            wait_for_state_update(self.scene,box_name = self.grip_box_name ,box_is_known=False,timeout=2)
+            self.scene.add_box(self.grip_box_name, gripper_box_pose, size=(grip_box_height,grip_box_width,grip_box_length))
+            success = wait_for_state_update(self.scene,box_name = self.grip_box_name ,box_is_known=True,timeout=2)
+            self.scene.attach_box(self.group.get_end_effector_link(),self.grip_box_name, touch_links=self.touch_links)
+            success = success and wait_for_state_update(self.scene,box_name = self.grip_box_name ,box_is_known=False,box_is_attached = True,timeout=2)
+            return success
     def removegripper(self):
 
         attached = self.scene.get_attached_objects([self.grip_box_name])
@@ -168,79 +170,7 @@ class motion_executor():
 
 
     def build_scene(self,shelf_pos):
-        
 
-
-
-
-
-
-
-       
-        tf_to_broadcast = []
-        #camera frame relative to end effector link
-        camera_transform = geometry_msgs.msg.TransformStamped()
-        camera_transform.header.stamp = rospy.Time.now()
-        camera_transform.header.frame_id = "/ee_link"
-        camera_transform.child_frame_id = "/camera"
-        #Camera transform, GUESSED not calibrated
-        camera_transform.transform.translation.x = float(-0.05)
-        camera_transform.transform.translation.y = float(0)
-        camera_transform.transform.translation.z = float(0.05)
-        quat = tf.transformations.quaternion_from_euler(float(0),float(0),float(0))
-        camera_transform.transform.rotation.x = quat[0]
-        camera_transform.transform.rotation.y = quat[1]
-        camera_transform.transform.rotation.z = quat[2]
-        camera_transform.transform.rotation.w = quat[3]
-        tf_to_broadcast.append(camera_transform)
-
-        #gripper 'end' relative to end effector link
-        gripper_transform = geometry_msgs.msg.TransformStamped()
-        gripper_transform.header.stamp = rospy.Time.now()
-        gripper_transform.header.frame_id = "ee_link"
-        gripper_transform.child_frame_id = "gripper_sucker"
-        gripper_transform.transform.translation.x = float(0.08)
-        gripper_transform.transform.translation.y = float(0)
-        gripper_transform.transform.translation.z = float(0.625)
-        quat = tf.transformations.quaternion_from_euler(
-                   float(0),float(0),float(0))
-        gripper_transform.transform.rotation.x = quat[0]
-        gripper_transform.transform.rotation.y = quat[1]
-        gripper_transform.transform.rotation.z = quat[2]
-        gripper_transform.transform.rotation.w = quat[3]
-        tf_to_broadcast.append(gripper_transform)
-
-        #front,top left corner of shelves
-        shelf_transform = geometry_msgs.msg.TransformStamped()
-        shelf_transform.header.stamp = rospy.Time.now()
-        shelf_transform.header.frame_id = "base"
-        shelf_transform.child_frame_id = "shelves"
-        shelf_transform.transform.translation.x = float(shelf_pos[0])
-        shelf_transform.transform.translation.y = float(shelf_pos[1])
-        shelf_transform.transform.translation.z = float(shelf_pos[2])
-        quat = tf.transformations.quaternion_from_euler(float(0),float(0),float(0))
-        shelf_transform.transform.rotation.x = quat[0]
-        shelf_transform.transform.rotation.y = quat[1]
-        shelf_transform.transform.rotation.z = quat[2]
-        shelf_transform.transform.rotation.w = quat[3]
-        tf_to_broadcast.append(shelf_transform)
-
-        for bin_id in ["bin_A","bin_B","bin_C","bin_D","bin_E","bin_F","bin_G","bin_H","bin_I","bin_J","bin_K","bin_L"]:
-            bin_pose = get_waypoint_pose(bin_id).pose
-            bin_tf = geometry_msgs.msg.TransformStamped()
-            bin_tf.header.stamp = rospy.Time.now()
-            bin_tf.header.frame_id = "/shelves"
-            bin_tf.child_frame_id = "/" + bin_id
-
-            bin_tf.transform.translation = bin_pose.position
-            bin_tf.transform.rotation = bin_pose.orientation
-            tf_to_broadcast.append(bin_tf)
-
-
-
-
-        #tf2 specific bug where you can only use one broadcaster per process, so publish both transforms at once
-        self.broadcaster.sendTransform(tf_to_broadcast)
         self.transformer.waitForTransform("/shelves","/base",rospy.Time.now(),rospy.Duration(2.0))
         
         #Wait for transforms to be published
@@ -344,8 +274,8 @@ class motion_executor():
         orientation_error = abs(np.dot(goal_orientation, current_orientation))       
         orientation_close = (orientation_error > 1 - o_tolerance) 
 
-        print("EE pose error position: "  + str(position_error) + "("+str(position_close)+")")
-        print("EE pose error orientation: "+ str(orientation_error) + "("+str(orientation_close)+")")
+        #print("EE pose error position: "  + str(position_error) + "("+str(position_close)+")")
+        #print("EE pose error orientation: "+ str(orientation_error) + "("+str(orientation_close)+")")
                 
         return position_close and orientation_close 
 
@@ -375,6 +305,9 @@ class motion_executor():
         print(self.waypoints)
         #Produce straight line move plan
         (plan, fraction) = self.group.compute_cartesian_path(self.waypoints, 0.01,0)         # jump_threshold
+        if fraction < 1:
+            print("Eeek wasn't able to compute the trajectory fract = "+str(fraction))
+            
         #Re scale trajectory velocity, typical value 0.05
         plan = self.group.retime_trajectory(self.robot.get_current_state(),plan, SPEED_SCALE);
         return plan
@@ -404,44 +337,45 @@ class motion_executor():
             # but that doesn't allow you to constantly call go_pose as the sleep after the stop causes the motiont to be jerky...
             # best way would be to detect if the robot's joints are moving, if they're moving then the arm's in motion, but if they're not
             # then perhaps the arm is stuck and re-execute the trajectory
-            if (not self.check_pose_close(pose_stamped.pose,0.00875,0.001) and self.goal_pose!=pose_stamped.pose):     
-                
+            #if (not self.check_pose_close(pose_stamped.pose,0.00875,0.001) and self.goal_pose!=pose_stamped.pose):     
+            #DISABLED due to bug where if you start in the same pose as goal_pose but motion executor's goal_pose is not set then motion never is marked as complete
 
-                self.goal_pose = pose_stamped.pose
-                
-                static_transformStamped = geometry_msgs.msg.TransformStamped()
-                static_transformStamped.header.stamp = rospy.Time.now()
-                static_transformStamped.header.frame_id = "/world"
-                static_transformStamped.child_frame_id = "EE_goal_pose"
-
-                static_transformStamped.transform.translation = self.goal_pose.position
-                static_transformStamped.transform.rotation = self.goal_pose.orientation
-
-                            #publish Goal pose
-                self.broadcaster.sendTransform(static_transformStamped)
+            self.goal_pose = pose_stamped.pose
             
-           
-                
-                #stop current movement
-                self.group.stop()
-                #Just a little pause to allow motion to come to a stop and avoid an error saying trajectory already in motion
-                rospy.sleep(0.1)
-                #clear the plan
-                self.clear_plan()
-                #wpose = self.group.get_current_pose().pose
-                #self.add_plan_pose(wpose)
-                #Moveit's Straight line trajectory can go between multiple points, however all moves are implemented point to point moves
-                #So only add one pose
-                self.add_plan_pose(self.goal_pose)
-                #compute the trajectory
-                self.plan = self.compute_plan()
+            static_transformStamped = geometry_msgs.msg.TransformStamped()
+            static_transformStamped.header.stamp = rospy.Time.now()
+            static_transformStamped.header.frame_id = "/world"
+            static_transformStamped.child_frame_id = "EE_goal_pose"
 
-                
-                #Fixes "start point deviates from current robot state " bug 
-                current_state = self.group.get_current_joint_values()
-                self.plan.joint_trajectory.points[0].positions = current_state
-                #start the motion
-                self.execute_plan()
+            static_transformStamped.transform.translation = self.goal_pose.position
+            static_transformStamped.transform.rotation = self.goal_pose.orientation
+
+                        #publish Goal pose
+            self.broadcaster.sendTransform(static_transformStamped)
+        
+       
+            
+            #stop current movement
+            self.group.stop()
+            #Just a little pause to allow motion to come to a stop and avoid an error saying trajectory already in motion
+            rospy.sleep(0.1)
+            #clear the plan
+            self.clear_plan()
+            #wpose = self.group.get_current_pose().pose
+            #self.add_plan_pose(wpose)
+            #Moveit's Straight line trajectory can go between multiple points, however all moves are implemented point to point moves
+            #So only add one pose
+            self.add_plan_pose(self.goal_pose)
+            #compute the trajectory
+            self.plan = self.compute_plan()
+
+            
+            #Fixes "start point deviates from current robot state " bug 
+            current_state = self.group.get_current_joint_values()
+            self.plan.joint_trajectory.points[0].positions = current_state
+            #print(self.plan)
+            #start the motion
+            self.execute_plan()
 
     def go_relative_pose(self, position,orientation):
         relative_pose = geometry_msgs.msg.PoseStamped()

@@ -12,6 +12,7 @@
   <include file="$(find ur_bringup)/launch/ur10_bringup.launch">
         <arg name="robot_ip" value="192.168.1.189"/>
   </include>
-   
+ 
+  <node name="scooper_tf_pub" type="scooper_tf_publishers.py" pkg="scooper_duper"/>
 
 </launch>
