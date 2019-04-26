@@ -13,6 +13,7 @@ DIP_TIME_LIMIT = 10 #Seconds
 VISION_LOOK_TIME = 0#Seconds
 STARE_TIME = 1 #Second
 
-
-SPEED_SCALE = 0.1
+#0.1 is speedy probably don't want to go much higher on the real arm
+#0.03 is a slowish but better for giving you more time to press the E stop
+SPEED_SCALE = 0.05
 

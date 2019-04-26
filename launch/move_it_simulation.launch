@@ -12,5 +12,6 @@
         <arg name="config" value="true"/>
   </include>
 
-
+ 
+  <node name="scooper_tf_pub" type="scooper_tf_publishers.py" pkg="scooper_duper"/>
 </launch>

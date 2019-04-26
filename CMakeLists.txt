@@ -52,7 +52,7 @@ add_message_files(
   FILES
   ItemMsg.msg
   ItemList.msg
-
+  VisionRequestMsg.msg
 )
 
 ## Generate services in the 'srv' folder
