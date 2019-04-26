@@ -4,29 +4,28 @@ import rospy
 from std_msgs.msg import String,Bool
 from scooper_duper.msg import ItemList, ItemMsg
 
-item1 = ItemMsg()
-item2 = ItemMsg()
 
-item1.item = "mommys_helper_outlet_plugs"
-item1.location = 0
-
-item2.item = "stanley_66_052"
-item2.location = 4
+def vision_c_loop_callback(data):
+	rospy.loginfo("Vision recieved data from topic target_item");
+	rospy.loginfo(data);
 
 def spoofer():
-    items_in_view_pub = rospy.Publisher('items_in_view', ItemList, queue_size = 10)
-
     rospy.init_node('vision', anonymous=True)
     
-    rate = rospy.Rate(0.5) # 10hz
-    item_list = ItemList()
-    item_list.items = (item1,item2)
-    while not rospy.is_shutdown():
+    item_in_view_pub = rospy.Publisher('item_in_view', Bool, queue_size = 10)
 
-        items_in_view_pub.publish(item_list)
+    rospy.Subscriber("target_item", String , vision_c_loop_callback)
+    
+    rate = rospy.Rate(0.5) # 10hz
+    state = False
+    while not rospy.is_shutdown():
+        #if (state == True):
+        #    state = False
+        #else:
+        #    state = True
+        item_in_view_pub.publish(state)
         rospy.loginfo("Vision info published");
 
-        
         rate.sleep()
 
 if __name__ == '__main__':

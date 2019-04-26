@@ -1,0 +1,4 @@
+#!/bin/sh
+
+
+ffmpeg -f video4linux2 -s 640x480 -i /dev/video2 -ss 0:0:0.1 -frames 1 ~/catkin_ws/src/scooper_duper/vision/PlanC/$(date +"%s").jpg

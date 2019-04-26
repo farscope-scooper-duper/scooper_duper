@@ -465,10 +465,41 @@ class motion_executor():
     
     def go_vision_viewpoint(self,vision_id,bin_id):
         print("Going to viewpoint:" + str(vision_id) +" at " + bin_id)
-        viewpoint_positions = ((0,-0.15,0),(0,0.15,0),(-0.15,0,0), (0,0,0))
-        viewpoint_rotations = np.array(((-20,0,0),(20,0,0),(0,20,0),(0,0,0)))
-        viewpoint_rotations = np.deg2rad(viewpoint_rotations)
+
+        #N.B. Change constants.py when switching between these.
+
+        ##Traditional camera views
+        #viewpoint_positions = ((0,-0.15,0),(0,0.15,0),(-0.15,0,0), (0,0,0))
+        #viewpoint_rotations = np.array(((-20,0,0),(20,0,0),(0,20,0),(0,0,0)))
+        #viewpoint_rotations = np.deg2rad(viewpoint_rotations)
         
+        ##Endoscope positions
+        # -----
+        #|. . .| 6 (possibly unreachable)
+        #|. . .| 5 (possibly unreachable)
+        #|> > v| 4
+        #|V < <| 3  ranks     
+        #|> > v| 2
+        #|X < <| 1
+        # l c r
+        # files        
+        jump_size = 0.08;
+
+        l_file = jump_size
+        c_file =  0
+        r_file = -jump_size
+        rank_1 = 2 * jump_size
+        rank_2 = 3 * jump_size
+        rank_3 = 4 * jump_size
+        rank_4 = 5 * jump_size   
+        viewpoint_positions = ((0, l_file, rank_4), (0, c_file, rank_4), (0, r_file, rank_4),
+                               (0, r_file, rank_3), (0, c_file, rank_3), (0, l_file, rank_3),
+                               (0, l_file, rank_2), (0, c_file, rank_2), (0, r_file, rank_2),
+                               (0, r_file, rank_1), (0, c_file, rank_1), (0, l_file, rank_1),
+                               (0, 0, 0))                               
+        viewpoint_rotations = np.array(((0,0,0), (0,0,0), (0,0,0), (0,0,0), (0,0,0), (0,0,0), (0,0,0), (0,0,0), (0,0,0), (0,0,0), (0,0,0), (0,0,0), (0,0,0), (0,0,0), (0,0,0), (0,0,0)))
+        viewpoint_rotations = np.deg2rad(viewpoint_rotations)
+
         viewpoint_pose = geometry_msgs.msg.PoseStamped()
         viewpoint_pose.header.stamp = rospy.Time.now()
         viewpoint_pose.header.frame_id = "/" + bin_id

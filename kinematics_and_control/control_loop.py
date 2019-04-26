@@ -28,6 +28,7 @@ def signal_handler(sig, frame):
 
 signal.signal(signal.SIGINT, signal_handler)
 target_item_pose = None
+
 def vision_request():
     global target_item_pose
     target_item_pose = None
@@ -43,8 +44,8 @@ def get_item_position():
     target_item_pose = mex.transformer.transformPose("/world",pose_stamped).pose
 
 def c_loop_vision_callback(data):
-    global target_item_pose
-    target_item_pose = data.items[0].pose
+    global item_in_view
+    item_in_view = data.data
     
     #rospy.loginfo("Control loop recieved data from topic items_in_view")
     #rospy.loginfo(data)
@@ -74,8 +75,10 @@ finger_pos_pub = rospy.Publisher('finger_pos', Bool, queue_size=10)
 finger_pos_pub.publish(False)
 suction_state_pub = rospy.Publisher('suction_state', Bool, queue_size=10)
 suction_state_pub.publish(False)
+target_item_pub = rospy.Publisher('target_item', String, queue_size=10)
+target_item_pub.publish('mommys_helper_outlet_plugs')
 
-rospy.Subscriber("items_in_view", ItemList , c_loop_vision_callback)
+rospy.Subscriber("item_in_view", Bool , c_loop_vision_callback)
 rospy.Subscriber("grip_sensor", Int8 , c_loop_gripsensor_callback)
 rate = rospy.Rate(0.5) # 10hz
 
@@ -84,10 +87,9 @@ print("Waiting for grip_sensor (from Gripper)...",end='')
 sys.stdout.flush()
 grip_state = rospy.wait_for_message("grip_sensor", Int8).data
 print("OK")
-print("Waiting for items_in_view (from Vision)...",end='')
+print("Waiting for item_in_view (from Vision)...",end='')
 sys.stdout.flush()
-vision_request()
-rospy.wait_for_message("items_in_view", ItemList)
+item_in_view = rospy.wait_for_message("item_in_view", String).data
 print("OK")
 
 mex = motion_executor()
@@ -161,13 +163,46 @@ while ((time.time() - run_time) < RUN_TIME_LIMIT) and (len(world_model.pick_list
             attempt_counter = 0
             viewpoint = 0
             mex.go_vision_viewpoint(viewpoint, target_item_bin) #Tell motion executor to go to first viewpoint
-            state = 'move_to_viewpoints'
+            state = 'endoscope_sweep'
         else:
             state = 'move_to_bin'
 
+    #Probably want checks for overall run time as well.
+    elif (state == 'endoscope_sweep'):
+        viewpoint_reached = mex.check_complete()
+        if (viewpoint_reached == True):
+            if (viewpoint == LAST_VIEWPOINT): #If we're at the last viewpoint (which should be the bin mouth again)
+                viewpoint = 0
+                world_model.pick_failure(target_item)
+                suction_state_pub.publish(False)
+                mex.go_waypoint(target_item_bin)
+                state = 'move_to_mouth'
+            else:
+                viewpoint = viewpoint + 1 #Increment viewpoint counter
+                stare_timer = time.time() #Start the timer
+                state = 'endoscope_stare'
+        else:
+            state = 'endoscope_sweep'
+
+    elif (state == 'endoscope_stare'):
+        if (item_in_view):
+            dip_timer = time.time()
+            suction_state_pub.publish(True)
+            mex.go_relative_pose((0.12,0,0),(0,0,0,1)) ##TODO: WARNING - number is not correct in general
+            dip_stage = 0 #0 is down, 1 is up 
+            dip_counter = 0           
+            state = 'suction_dip'
+        elif (time.time() - stare_timer) < STARE_TIME:
+            state = 'endoscope_stare'
+        else:
+            print("About to go to:")
+            print(viewpoint)
+            mex.go_vision_viewpoint(viewpoint, target_item_bin)
+            state = 'endoscope_sweep'
+
     elif (state == 'move_to_viewpoints'):
         viewpoint_reached = mex.check_complete()
-        if (grip_state != 0):
+        if (grip_state != 0): #Need to remove reference to grip state - don't have a gripper.
             finger_pos_pub.publish(False)
             state = 'move_to_viewpoints'
         elif (viewpoint_reached == True):

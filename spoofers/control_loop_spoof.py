@@ -16,7 +16,7 @@ def signal_handler(sig, frame):
 signal.signal(signal.SIGINT, signal_handler)
 
 def c_loop_vision_callback(data):
-	rospy.loginfo("Control loop recieved data from topic items_in_view");
+	rospy.loginfo("Control loop recieved data from topic item_in_view");
 	rospy.loginfo(data);
 
 def c_loop_gripsensor_callback(data):
@@ -28,8 +28,10 @@ def spoofer():
     finger_pos_pub = rospy.Publisher('finger_pos', Bool, queue_size=10)
     suction_state_pub = rospy.Publisher('suction_state', Bool, queue_size=10)
     EE_pose_pub = rospy.Publisher('t_EE_pose', Transform, queue_size=10)
+    target_item_pub = rospy.Publisher('target_item', String, queue_size=10)
+    target_item_pub.publish('mommys_helper_outlet_plugs')
 
-    rospy.Subscriber("items_in_view", ItemList , c_loop_vision_callback)
+    rospy.Subscriber("item_in_view", Bool , c_loop_vision_callback)
     rospy.Subscriber("grip_sensor", Int8 , c_loop_gripsensor_callback)
     rate = rospy.Rate(0.5) # 10hz
 
