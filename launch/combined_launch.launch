@@ -15,7 +15,7 @@
     </node>
 
     <!-- Non-spoofing vision not yet implemented. -->
-    <node unless="$(arg vision)" name="vision" type="vision_spoof2.py" pkg="scooper_duper"/>
+    <node unless="$(arg vision)" name="vision" type="vision_spoof.py" pkg="scooper_duper"/>
 
     <include     if="$(arg real)" file="$(find scooper_duper)/launch/move_it_real.launch"/>
     <include unless="$(arg real)" file="$(find scooper_duper)/launch/move_it_simulation.launch"/>
