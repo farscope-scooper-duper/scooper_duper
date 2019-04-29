@@ -316,8 +316,8 @@ class motion_executor():
     def wait_till_complete(self,waypoint_id=''):    
         while (not rospy.is_shutdown()):
             rospy.sleep(0.1) 
-            if waypoint_id <> '':
-             m.go_waypoint(waypoint_id)   
+            #if waypoint_id <> '':
+            #m.go_waypoint(waypoint_id)   
 
             if self.check_complete():
                 break 
@@ -377,15 +377,26 @@ class motion_executor():
             #start the motion
             self.execute_plan()
 
-    def go_relative_pose(self, position,orientation,speed_scale = SPEED_SCALE):
+    def go_relative_pose(self, position,orientation,speed_scale = SPEED_SCALE,relative_frame = "/ee_link"):
         relative_pose = geometry_msgs.msg.PoseStamped()
         relative_pose.header.stamp = rospy.Time.now()
-        relative_pose.header.frame_id = "/ee_link"
+        relative_pose.header.frame_id = relative_frame
         relative_pose.pose.position =  geometry_msgs.msg.Vector3(*position)
-        #quat = tf.transformations.quaternion_from_euler(viewpoint_rotations[vision_id][0],viewpoint_rotations[vision_id][1],viewpoint_rotations[vision_id][2])
         relative_pose.pose.orientation =  geometry_msgs.msg.Quaternion(*orientation)
         self.go_pose(relative_pose,speed_scale)
-    
+
+    def set_dip_pose(self):
+        static_transformStamped = geometry_msgs.msg.TransformStamped()
+        static_transformStamped.header.stamp = rospy.Time.now()
+        static_transformStamped.header.frame_id = "/world"
+        static_transformStamped.child_frame_id = "/dip_start"
+
+        static_transformStamped.transform.translation = self.group.get_current_pose().pose.position
+        static_transformStamped.transform.rotation =self.group.get_current_pose().pose.orientation
+        #publish Goal pose
+        self.broadcaster.sendTransform(static_transformStamped)
+        rospy.sleep(0.1)
+        
     def go_vision_viewpoint(self,vision_id,bin_id):
         print("Going to viewpoint:" + str(vision_id) +" at " + bin_id)
 

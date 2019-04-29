@@ -33,9 +33,9 @@ void messageCb( const std_msgs::Bool& toggle_msg){
   last_msg = toggle_msg.data ;
 
   if ( toggle_msg.data ) {
-    digitalWrite( VacuumPin , LOW ) ;
-  } else {
     digitalWrite( VacuumPin , HIGH ) ;
+  } else {
+    digitalWrite( VacuumPin , LOW ) ;
   }
   
 }
@@ -65,7 +65,7 @@ void setup() {
 
   
   pinMode ( LED_BUILTIN , OUTPUT ) ;
-  digitalWrite( VacuumPin , HIGH ) ; 
+  digitalWrite( VacuumPin , LOW ) ; 
   nh.initNode() ;
   nh.subscribe(sub) ;
   nh.advertise(pub_state);
@@ -87,7 +87,7 @@ void loop() {
   Serial.print(p_reading);
   Serial.println(" hPa");
   if (p_reading > P_THRESHOLD){ //Not blocked
-    grip_message.data = 1;
+    grip_message.data = 0;
   }
   else
   { //flow blocked 

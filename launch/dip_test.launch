@@ -1,0 +1,13 @@
+<launch>
+
+    <node name="serial_node" type="serial_node.py" pkg="rosserial_python">
+        <param name="port" value="/dev/ttyUSB0"/>
+        <param name="baud" value="57600"/>
+    </node>
+
+
+    <include file="$(find scooper_duper)/launch/move_it_real.launch"/>
+
+        
+
+</launch>
