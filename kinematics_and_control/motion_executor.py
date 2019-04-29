@@ -301,7 +301,7 @@ class motion_executor():
         
         self.waypoints.append(copy.deepcopy(pose))
     
-    def compute_plan(self):
+    def compute_plan(self,speed_scale = SPEED_SCALE):
         print(self.waypoints)
         #Produce straight line move plan
         (plan, fraction) = self.group.compute_cartesian_path(self.waypoints, 0.01,0)         # jump_threshold
@@ -309,7 +309,7 @@ class motion_executor():
             print("Eeek wasn't able to compute the trajectory fract = "+str(fraction))
             
         #Re scale trajectory velocity, typical value 0.05
-        plan = self.group.retime_trajectory(self.robot.get_current_state(),plan, SPEED_SCALE);
+        plan = self.group.retime_trajectory(self.robot.get_current_state(),plan, speed_scale);
         return plan
     
     #Blocking loop to wait till the arm is in the goal pose
@@ -323,7 +323,7 @@ class motion_executor():
                 break 
         return
         rospy.sleep(0.5) 
-    def go_pose(self,pose_stamped):
+    def go_pose(self,pose_stamped,speed_scale = SPEED_SCALE):
 
             self.transformer.waitForTransform(pose_stamped.header.frame_id,"/world", rospy.Time.now(),rospy.Duration(20.0))
 
@@ -367,7 +367,7 @@ class motion_executor():
             #So only add one pose
             self.add_plan_pose(self.goal_pose)
             #compute the trajectory
-            self.plan = self.compute_plan()
+            self.plan = self.compute_plan(speed_scale)
 
             
             #Fixes "start point deviates from current robot state " bug 
@@ -377,14 +377,14 @@ class motion_executor():
             #start the motion
             self.execute_plan()
 
-    def go_relative_pose(self, position,orientation):
+    def go_relative_pose(self, position,orientation,speed_scale = SPEED_SCALE):
         relative_pose = geometry_msgs.msg.PoseStamped()
         relative_pose.header.stamp = rospy.Time.now()
         relative_pose.header.frame_id = "/ee_link"
         relative_pose.pose.position =  geometry_msgs.msg.Vector3(*position)
         #quat = tf.transformations.quaternion_from_euler(viewpoint_rotations[vision_id][0],viewpoint_rotations[vision_id][1],viewpoint_rotations[vision_id][2])
         relative_pose.pose.orientation =  geometry_msgs.msg.Quaternion(*orientation)
-        self.go_pose(relative_pose)
+        self.go_pose(relative_pose,speed_scale)
     
     def go_vision_viewpoint(self,vision_id,bin_id):
         print("Going to viewpoint:" + str(vision_id) +" at " + bin_id)
