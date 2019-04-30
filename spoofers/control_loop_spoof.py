@@ -9,8 +9,6 @@ from scooper_duper.msg import *
 
 def signal_handler(sig, frame):
     print("Exit called")
-    while(True):
-        print(".")
     sys.exit(0)
 
 signal.signal(signal.SIGINT, signal_handler)
@@ -29,15 +27,20 @@ def spoofer():
     suction_state_pub = rospy.Publisher('suction_state', Bool, queue_size=10)
     EE_pose_pub = rospy.Publisher('t_EE_pose', Transform, queue_size=10)
     target_item_pub = rospy.Publisher('target_item', String, queue_size=10)
-    target_item_pub.publish('mommys_helper_outlet_plugs')
+    target_item_pub.publish('sharpie_accent_tank_style_highlighters')
 
     rospy.Subscriber("item_in_view", Bool , c_loop_vision_callback)
     rospy.Subscriber("grip_sensor", Int8 , c_loop_gripsensor_callback)
-    rate = rospy.Rate(0.5) # 10hz
+    rate = rospy.Rate(0.5)
 
     state = 0
-
+    counter = 0
     while not rospy.is_shutdown():
+        if(counter < 20):
+            counter = counter + 1
+            target_item_pub.publish('sharpie_accent_tank_style_highlighters')
+        else:
+            target_item_pub.publish('adventures_of_huckleberry_finn_book')
         if (state==0):
           finger_pos_pub.publish(False)
           suction_state_pub.publish(False)

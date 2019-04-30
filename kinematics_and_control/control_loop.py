@@ -64,7 +64,8 @@ mex = motion_executor()
 suction_state_pub = rospy.Publisher('suction_state', Bool, queue_size=10)
 suction_state_pub.publish(False)
 target_item_pub = rospy.Publisher('target_item', String, queue_size=10)
-target_item_pub.publish('mommys_helper_outlet_plugs')
+target_item = 'adventures_of_huckleberry_finn_book'
+target_item_pub.publish(target_item)
 
 #Set up subscriptions - and wait until we have received a value before continuing.
 rospy.Subscriber("item_in_view", Bool , c_loop_vision_callback)
@@ -100,6 +101,7 @@ state = 'get_target_item'
 
 #The operations run until there is nothing else left on the pick list, or until the time limit has been reached.
 while ((time.time() - run_time) < RUN_TIME_LIMIT) and (len(world_model.pick_list) > 0) and (not rospy.is_shutdown()):
+    target_item_pub.publish(target_item)
     if (state == 'get_target_item'):
         #Pop top of pick queue
         target_item = world_model.pick_list[0]

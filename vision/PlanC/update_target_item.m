@@ -1,5 +1,5 @@
 function update_target_item(~,message)
-global itemIDsub;
-itemIDsub = message.Data;
+global target_item;
+target_item = message.Data;
 
 end

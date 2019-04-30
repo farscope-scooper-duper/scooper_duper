@@ -12,6 +12,8 @@ function isFound = findItem(image, item_name, list, list_threshold)
 threshold = list_threshold(item_name);
 matches = get_matches(list, image, item_name);
 
+item_name
+
 fprintf('\n%i matches\n', size(matches,1));
 fprintf('\nThreshold for item "%s" is %i\n',item_name, threshold);
 
