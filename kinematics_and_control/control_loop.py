@@ -9,16 +9,12 @@ import tf
 #Add directory above to python path to locate constants.py
 sys.path.append(os.path.join(os.path.dirname(sys.path[0]),''))
 
-#sys.path.append("/home/julian/catkin_ws/src/scooper_duper")
-
 from std_msgs.msg import String,Bool,Int8
 from geometry_msgs.msg import Transform,Vector3,Quaternion
 from scooper_duper.msg import *
 from json_handler import *
 from motion_executor import motion_executor
-#get vision funcs
-#sys.path.append(os.path.join(os.path.dirname(sys.path[0]),'vision_interface'))
-#from vision_interface import vision_interface
+
 from constants import *
 
 def signal_handler(sig, frame):
@@ -73,7 +69,7 @@ print("Running setup and calibration...")
 
 world_model = WorldModel( os.path.join(os.path.dirname(sys.path[0]),'pick_list.json'))
 mex = motion_executor()
-#v_interface = vision_interface()
+
 
 
 
