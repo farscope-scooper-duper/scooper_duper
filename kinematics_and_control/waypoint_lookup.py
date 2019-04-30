@@ -11,7 +11,7 @@ def get_waypoint_pose(waypoint_id):
 
     #distance from the shelf frame origin the centre of the middle bin (in x, postive x goes left, so centre is in negative x)
     bin_centre = -shelf_config.shelf_width/2
-    bin_left = bin_centre + bin_width
+    bin_left = bin_centre + bin_width + 0.05
     bin_right = bin_centre - bin_width
     bin_double_left = bin_left + 2*bin_width
 

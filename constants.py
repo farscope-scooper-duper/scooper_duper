@@ -17,3 +17,5 @@ STARE_TIME = 1 #Second
 #0.03 is a slowish but better for giving you more time to press the E stop
 SPEED_SCALE = 0.05
 
+VACUUM_OFF_THRESH = 1010 #Above this and we assume no suction
+OBJECT_CONTACT_THRESH = 875 #Below this is a blockage - assume we hold an item

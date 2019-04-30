@@ -16,13 +16,13 @@ def spoofer():
 
     rospy.Subscriber("target_item", String , vision_c_loop_callback)
     
-    rate = rospy.Rate(0.5) # 10hz
+    rate = rospy.Rate(0.5)
     state = False
     while not rospy.is_shutdown():
-        #if (state == True):
-        #    state = False
-        #else:
-        #    state = True
+        if (state == True):
+            state = False
+        else:
+            state = True
         item_in_view_pub.publish(state)
         rospy.loginfo("Vision info published");
 

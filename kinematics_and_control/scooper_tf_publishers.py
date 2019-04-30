@@ -39,7 +39,7 @@ class scooper_tf_publisher():
             gripper_transform.child_frame_id = "gripper_sucker"
             gripper_transform.transform.translation.x = float(0.08)
             gripper_transform.transform.translation.y = float(0)
-            gripper_transform.transform.translation.z = float(0.625)
+            gripper_transform.transform.translation.z = float(0.6)
             quat = tf.transformations.quaternion_from_euler(
             float(0),float(0),float(0))
             gripper_transform.transform.rotation.x = quat[0]

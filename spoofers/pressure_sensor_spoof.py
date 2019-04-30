@@ -10,10 +10,10 @@ def spoofer():
     pressure_sensor_pub = rospy.Publisher('pressure_sensor', Float64, queue_size=10)
 
     rate = rospy.Rate(1.1)
-    reading = 1000.54
+    #reading = 1000.54
+    reading = 0
     while not rospy.is_shutdown():
         pressure_sensor_pub.publish(reading)
-        rospy.time
         rospy.loginfo("Pressure reading: {}".format(reading))
         rate.sleep()
 
