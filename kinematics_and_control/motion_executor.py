@@ -274,8 +274,8 @@ class motion_executor():
         orientation_error = abs(np.dot(goal_orientation, current_orientation))       
         orientation_close = (orientation_error > 1 - o_tolerance) 
 
-        #print("EE pose error position: "  + str(position_error) + "("+str(position_close)+")")
-        #print("EE pose error orientation: "+ str(orientation_error) + "("+str(orientation_close)+")")
+        print("EE pose error position: "  + str(position_error) + "("+str(position_close)+")")
+        print("EE pose error orientation: "+ str(orientation_error) + "("+str(orientation_close)+")")
                 
         return position_close and orientation_close 
 
@@ -283,7 +283,7 @@ class motion_executor():
         #Doesn't work due to quantonions not being unique and we sometimes only change orientation
         #all_close(self.goal_pose.position, current_pose.position,0.03)
        
-        return self.check_pose_close(self.goal_pose,tolerance = 0.00875,o_tolerance = 0.001)
+        return self.check_pose_close(self.goal_pose,tolerance = 0.011,o_tolerance = 0.001)
 
     def go_to_joint_config(self,joint_goal):
         #Performs a blocking joint move
@@ -304,7 +304,7 @@ class motion_executor():
     def compute_plan(self,speed_scale = SPEED_SCALE):
         print(self.waypoints)
         #Produce straight line move plan
-        (plan, fraction) = self.group.compute_cartesian_path(self.waypoints, 0.01,0)         # jump_threshold
+        (plan, fraction) = self.group.compute_cartesian_path(self.waypoints, 0.005,0)         # jump_threshold
         if fraction < 1:
             print("Eeek wasn't able to compute the trajectory fract = "+str(fraction))
             
@@ -410,7 +410,7 @@ class motion_executor():
         ##Endoscope positions
         # -----
         #|. . .| 6 (possibly unreachable)
-        #|. . .| 5 (possibly unreachable)
+        #|v < <| 5 
         #|> > v| 4
         #|V < <| 3  ranks     
         #|> > v| 2
@@ -426,12 +426,19 @@ class motion_executor():
         rank_2 = 3 * jump_size
         rank_3 = 4 * jump_size
         rank_4 = 5 * jump_size   
-        viewpoint_positions = ((0, l_file, rank_4), (0, c_file, rank_4), (0, r_file, rank_4),
+        rank_5 = 6 * jump_size  
+        viewpoint_positions = ((0, r_file, rank_5), (0, c_file, rank_5), (0, l_file, rank_5),
+                               (0, l_file, rank_4), (0, c_file, rank_4), (0, r_file, rank_4),
                                (0, r_file, rank_3), (0, c_file, rank_3), (0, l_file, rank_3),
                                (0, l_file, rank_2), (0, c_file, rank_2), (0, r_file, rank_2),
                                (0, r_file, rank_1), (0, c_file, rank_1), (0, l_file, rank_1),
                                (0, 0, 0))                               
-        viewpoint_rotations = np.array(((0,0,0), (0,0,0), (0,0,0), (0,0,0), (0,0,0), (0,0,0), (0,0,0), (0,0,0), (0,0,0), (0,0,0), (0,0,0), (0,0,0), (0,0,0), (0,0,0), (0,0,0), (0,0,0)))
+        viewpoint_rotations = np.array(((0,0,0), (0,0,0), (0,0,0), 
+                                        (0,0,0), (0,0,0), (0,0,0),
+                                        (0,0,0), (0,0,0), (0,0,0),
+                                        (0,0,0), (0,0,0), (0,0,0),
+                                        (0,0,0), (0,0,0), (0,0,0), 
+                                        (0,0,0)))
         viewpoint_rotations = np.deg2rad(viewpoint_rotations)
 
         viewpoint_pose = geometry_msgs.msg.PoseStamped()

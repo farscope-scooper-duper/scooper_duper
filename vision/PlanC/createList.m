@@ -28,7 +28,7 @@ itemID = {'crayola_64_ct',
           'sharpie_accent_tank_style_highlighters',
           'elmers_washable_no_run_school_glue',
           'champion_copper_plus_spark_plug',
-          'laugh_out_loud_joke_book',;
+          'laugh_out_loud_joke_book',
           'feline_greenies_dental_treats'};
       
       

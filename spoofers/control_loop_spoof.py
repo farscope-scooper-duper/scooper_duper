@@ -14,13 +14,14 @@ def signal_handler(sig, frame):
 signal.signal(signal.SIGINT, signal_handler)
 
 def c_loop_vision_callback(data):
-	rospy.loginfo("Control loop recieved data from topic item_in_view");
-	rospy.loginfo(data);
+    pass
+    #rospy.loginfo("Control loop recieved data from topic item_in_view");
+	#rospy.loginfo(data);
 
 def c_loop_gripsensor_callback(data):
-	rospy.loginfo("Control loop recieved from topic grip_sensor");
-	rospy.loginfo(data);
-
+	#rospy.loginfo("Control loop recieved from topic grip_sensor");
+	#rospy.loginfo(data);
+    pass
 def spoofer():
     rospy.init_node('control_loop', anonymous=True)
     finger_pos_pub = rospy.Publisher('finger_pos', Bool, queue_size=10)
@@ -31,32 +32,27 @@ def spoofer():
 
     rospy.Subscriber("item_in_view", Bool , c_loop_vision_callback)
     rospy.Subscriber("grip_sensor", Int8 , c_loop_gripsensor_callback)
-    rate = rospy.Rate(0.5)
+    period = 0.5
+    rate = rospy.Rate(period)
 
-    state = 0
+    vac_state = False
     counter = 0
+    vac_counter = 0
     while not rospy.is_shutdown():
         if(counter < 20):
             counter = counter + 1
             target_item_pub.publish('sharpie_accent_tank_style_highlighters')
         else:
             target_item_pub.publish('adventures_of_huckleberry_finn_book')
-        if (state==0):
-          finger_pos_pub.publish(False)
-          suction_state_pub.publish(False)
-        elif (state == 1):
-          finger_pos_pub.publish(True)
-          suction_state_pub.publish(False)
-        elif (state == 2):
-          finger_pos_pub.publish(False)
-          suction_state_pub.publish(True)
-        elif (state == 3):
-          finger_pos_pub.publish(True)
-          suction_state_pub.publish(True)
-        
-        state = state +1
-        if state >= 4:
-          state = 0
+
+
+        suction_state_pub.publish(vac_state)
+
+        vac_counter = vac_counter + 1
+ 
+        if vac_counter > 1/(2*period):
+          vac_counter = 0
+          vac_state = not vac_state
         rospy.loginfo("Gripper and vacuum toggled");
         target_pose = Transform()
         target_pose.translation = Vector3(0,0,0)

@@ -5,43 +5,53 @@
             "mommys_helper_outlet_plugs"
         ],
         "bin_B": [
+            "adventures_of_huckleberry_finn_book",
             "kong_duck_dog_toy"
         ],
         "bin_C": [
             "laugh_out_loud_joke_book",
-            "dove_beauty_bar"
+            "kong_air_dog_squeakair_tennis_ball"
         ],
         "bin_D": [
-            "munchkin_white_hot_duck_bath_toy",
+            "feline_greenies_dental_treats",
             "elmers_washable_no_run_school_glue"
         ],
         "bin_E": [
-            "paper_mate_12_count_mirado_black_warrior"
+            "highland_6539_self_stick_notes"
         ],
         "bin_F": [
-            "first_years_take_and_toss_straw_cup",
+            "safety_works_safety_glasses",
             "genuine_joe_plastic_stir_sticks"
         ],
         "bin_G": [
-            "kong_sitting_frog_dog_toy"
+            "kong_sitting_frog_dog_toy",
+            "dead_sea_mud"
         ],
         "bin_H": [
-            "dr_browns_bottle_brush"
+            "dove_soap",
+            "expo_dry_erase_board_eraser"
         ],
         "bin_I": [
-            "sharpie_accent_tank_style_highlighters"
+            "sharpie_accent_tank_style_highlighters",
+            "first_years_take_and_toss_straw_cup"
         ],
         "bin_J": [
-            "mead_index_cards"
+            "champion_copper_plus_spark_plug",
+            "dr_browns_bottle_brush"
         ],
         "bin_K": [
-            "kyjen_squeakin_eggs_plush_puppies"
+            "munchkin_white_hot_duck_bath_toy",
+            "mead_index_cards"
         ],
         "bin_L": [
-            "safety_works_safety_glasses"
+        
         ]
     },
     "work_order": [
+        {
+            "bin": "bin_D",
+            "item": "elmers_washable_no_run_school_glue"
+        },
         {
             "bin": "bin_B",
             "item": "kong_duck_dog_toy"
@@ -51,12 +61,8 @@
             "item": "laugh_out_loud_joke_book"   
         },
         {
-            "bin": "bin_E",
-            "item": "paper_mate_12_count_mirado_black_warrior"
-        },
-        {
-            "bin": "bin_D",
-            "item": "elmers_washable_no_run_school_glue"
+            "bin": "bin_I",
+            "item": "sharpie_accent_tank_style_highlighters"   
         },
         {
             "bin": "bin_G",

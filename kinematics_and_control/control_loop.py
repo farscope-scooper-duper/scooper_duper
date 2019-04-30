@@ -21,7 +21,7 @@ def signal_handler(sig, frame):
     mex.shutdown()
     suction_state_pub.publish(False)
     print("Exit called")
-    #world_model.output_to_file('{}.json'.format(time.time()))
+    world_model.output_to_file('{}.json'.format(time.time()))
     print("Output to file")
     sys.exit(0)
 
@@ -31,7 +31,10 @@ def c_loop_vision_callback(data):
     #rospy.loginfo("Control loop recieved data from topic items_in_view")
     #rospy.loginfo(data)
     global item_in_view
-    item_in_view = data.data
+    if (stare_latch == True):
+        item_in_view = (item_in_view or data.data)
+    else:
+        item_in_view = data.data
     
 def c_loop_pressure_callback(data):
     global pressure_state
@@ -56,13 +59,17 @@ print("Connection tests complete.")
 #==Calibration and setup==
 print("Running setup and calibration...")
 
+stare_latch = False
+
 #Read in the pick file, set up world model.
 world_model = WorldModel( os.path.join(os.path.dirname(sys.path[0]),'vision_int_pick.json'))
 mex = motion_executor()
 
 #Set up publishing - send default values.
 suction_state_pub = rospy.Publisher('suction_state', Bool, queue_size=10)
-suction_state_pub.publish(False)
+suction_state = False
+last_suction_state = suction_state
+suction_state_pub.publish(suction_state)
 target_item_pub = rospy.Publisher('target_item', String, queue_size=10)
 target_item = 'adventures_of_huckleberry_finn_book'
 target_item_pub.publish(target_item)
@@ -98,10 +105,19 @@ while (operator_input.lower() != "begin"):
 
 run_time = time.time() #Start time of the full operation
 state = 'get_target_item'
+print_time = time.time()
+
+vacuum_pub_time = time.time()
 
 #The operations run until there is nothing else left on the pick list, or until the time limit has been reached.
 while ((time.time() - run_time) < RUN_TIME_LIMIT) and (len(world_model.pick_list) > 0) and (not rospy.is_shutdown()):
     target_item_pub.publish(target_item)
+    
+    if (time.time() - vacuum_pub_time) > 0.8 or (last_suction_state!=suction_state):
+        vacuum_pub_time = time.time()
+        last_suction_state = suction_state  
+        suction_state_pub.publish(suction_state)
+
     if (state == 'get_target_item'):
         #Pop top of pick queue
         target_item = world_model.pick_list[0]
@@ -130,7 +146,7 @@ while ((time.time() - run_time) < RUN_TIME_LIMIT) and (len(world_model.pick_list
             if (viewpoint == LAST_VIEWPOINT): #If we're at the last viewpoint (which should be the bin mouth again)
                 viewpoint = 0
                 world_model.pick_failure(target_item)
-                suction_state_pub.publish(False)
+                suction_state = False
                 mex.go_waypoint(target_item_bin)
                 state = 'move_to_mouth'
             else:
@@ -143,9 +159,9 @@ while ((time.time() - run_time) < RUN_TIME_LIMIT) and (len(world_model.pick_list
     elif (state == 'endoscope_stare'):
         if (item_in_view):
             dip_timer = time.time()
-            suction_state_pub.publish(True)
+            suction_state = True
             mex.set_dip_pose()
-            mex.go_relative_pose((0.12,0,0),(0,0,0,1),0.01, "/dip_start") ##TODO: WARNING - number is not correct in general
+            mex.go_relative_pose((0.12,0,DOPESCOPE_OFFSET),(0,0,0,1),DIP_DOWN_SPEED, "/dip_start") ##TODO: WARNING - number is not correct in general
             dip_stage = 0 #0 is down, 1 is up        
             state = 'suction_dip'
         elif (time.time() - stare_timer) < STARE_TIME:
@@ -158,11 +174,10 @@ while ((time.time() - run_time) < RUN_TIME_LIMIT) and (len(world_model.pick_list
 
     elif (state == 'suction_dip'):
         reached = mex.check_complete()
-        print(pressure_state)
         if dip_stage == 0:
             if ((pressure_state == True) or (reached == True)):
                 dip_stage = 1
-                mex.go_relative_pose((0,0,0),(0,0,0,1), SPEED_SCALE, "/dip_start")
+                mex.go_relative_pose((0,0,0),(0,0,0,1), DIP_UP_SPEED, "/dip_start")
                 state = 'suction_dip'
             else:
                 state = 'suction_dip'
@@ -172,7 +187,7 @@ while ((time.time() - run_time) < RUN_TIME_LIMIT) and (len(world_model.pick_list
                     mex.go_waypoint(target_item_bin)
                     state = 'move_to_mouth'
                 else: #Not in contact with item
-                    suction_state_pub.publish(False) #Might want checks at the start of appropriate states to see if the suction is on or not.
+                    suction_state = False #Might want checks at the start of appropriate states to see if the suction is on or not.
                     mex.go_vision_viewpoint(viewpoint, target_item_bin)
                     state = 'endoscope_sweep'
             else:
@@ -189,16 +204,15 @@ while ((time.time() - run_time) < RUN_TIME_LIMIT) and (len(world_model.pick_list
             state = 'move_to_tote'
         else:
             world_model.pick_failure(target_item)
-            suction_state_pub.publish(False)
+            suction_state = False
             state = 'get_target_item'
-
 
     elif (state == 'move_to_tote'): ## TODO: will get stuck in this state if movement fails
         tote_reached = mex.check_complete()
         if (tote_reached == False):
             state = 'move_to_tote'
         elif (pressure_state == False): #Unblocked - probably dropped the item
-            pass
+            suction_state = False
             world_model.pick_success(target_item) #Success to remove from the list
             world_model.add_item_to_bin(target_item, 'floor')
             state = 'get_target_item'
@@ -212,20 +226,23 @@ while ((time.time() - run_time) < RUN_TIME_LIMIT) and (len(world_model.pick_list
             world_model.add_item_to_bin(target_item, 'tote')
             state = 'get_target_item'
         else: #Could still potentially have the item
-            suction_state_pub.publish(False)
+            suction_state = False
             state = 'release_item'
 
-    print(state)
-    time.sleep(1)
+    if (time.time() - print_time) > PRINT_DELAY:
+        print(state)
+        print(suction_state)
+        print_time = time.time()
+    time.sleep(0.01)
 
 if rospy.is_shutdown():
     print("Control loop aborted")    
 if ((time.time() - run_time) > RUN_TIME_LIMIT):
     print("Out of time; %d items remaining to pick" % len(world_model.target_items()))
-else: #Not true - possibly some items were dropped
-    print("All items picked successfully.")
+else: 
+    print("All items dropped or picked successfully in " + str(time.time() - run_time))
 
 mex.shutdown()
 suction_state_pub.publish(False)
-world_model.output_to_file('output.json')
+world_model.output_to_file('{}.json'.format(time.time()))
 
