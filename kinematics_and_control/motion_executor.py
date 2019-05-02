@@ -274,8 +274,8 @@ class motion_executor():
         orientation_error = abs(np.dot(goal_orientation, current_orientation))       
         orientation_close = (orientation_error > 1 - o_tolerance) 
 
-        print("EE pose error position: "  + str(position_error) + "("+str(position_close)+")")
-        print("EE pose error orientation: "+ str(orientation_error) + "("+str(orientation_close)+")")
+        #print("EE pose error position: "  + str(position_error) + "("+str(position_close)+")")
+        #print("EE pose error orientation: "+ str(orientation_error) + "("+str(orientation_close)+")")
                 
         return position_close and orientation_close 
 
@@ -418,7 +418,7 @@ class motion_executor():
         # l c r
         # files        
         jump_size = 0.08;
-
+        sweep_x = 0.02
         l_file = jump_size
         c_file =  0
         r_file = -jump_size
@@ -426,14 +426,16 @@ class motion_executor():
         rank_2 = 3 * jump_size
         rank_3 = 4 * jump_size
         rank_4 = 5 * jump_size   
-        rank_5 = 6 * jump_size  
-        viewpoint_positions = ((0, r_file, rank_5), (0, c_file, rank_5), (0, l_file, rank_5),
-                               (0, l_file, rank_4), (0, c_file, rank_4), (0, r_file, rank_4),
-                               (0, r_file, rank_3), (0, c_file, rank_3), (0, l_file, rank_3),
-                               (0, l_file, rank_2), (0, c_file, rank_2), (0, r_file, rank_2),
-                               (0, r_file, rank_1), (0, c_file, rank_1), (0, l_file, rank_1),
-                               (0, 0, 0))                               
-        viewpoint_rotations = np.array(((0,0,0), (0,0,0), (0,0,0), 
+        rank_5 = 5.5 * jump_size
+        #(0, r_file, rank_5), (0, c_file, rank_5), (0, l_file, rank_5),  
+        viewpoint_positions = (
+                               (sweep_x, l_file, rank_4), (sweep_x, c_file, rank_4), (sweep_x, r_file, rank_4),
+                               (sweep_x, r_file, rank_3), (sweep_x, c_file, rank_3), (sweep_x, l_file, rank_3),
+                               (sweep_x, l_file, rank_2), (sweep_x, c_file, rank_2), (sweep_x, r_file, rank_2),
+                               (sweep_x, r_file, rank_1), (sweep_x, c_file, rank_1), (sweep_x, l_file, rank_1),
+                               (0, 0, 0))                
+        #(0,0,0), (0,0,0), (0,0,0),               
+        viewpoint_rotations = np.array(( 
                                         (0,0,0), (0,0,0), (0,0,0),
                                         (0,0,0), (0,0,0), (0,0,0),
                                         (0,0,0), (0,0,0), (0,0,0),
@@ -490,16 +492,18 @@ if __name__ == '__main__':
        # m.wait_till_complete()           
         m.go_waypoint("bin_L")
         m.wait_till_complete()    
-        m.go_vision_viewpoint(0,"bin_L")
-        m.wait_till_complete() 
-        rospy.sleep(1)   
-        m.go_vision_viewpoint(1,"bin_L")
-        m.wait_till_complete()    
-        rospy.sleep(1)
-        m.go_vision_viewpoint(2,"bin_L")
-        m.wait_till_complete()    
-        rospy.sleep(1)
-        m.go_vision_viewpoint(3,"bin_L")
+        m.go_waypoint_mouth("bin_L")
+        m.wait_till_complete()
+        #m.go_vision_viewpoint(0,"bin_L")
+        #m.wait_till_complete() 
+        #rospy.sleep(1)   
+        #m.go_vision_viewpoint(1,"bin_L")
+        #m.wait_till_complete()    
+        #rospy.sleep(1)
+        #m.go_vision_viewpoint(2,"bin_L")
+        #m.wait_till_complete()    
+        #rospy.sleep(1)
+        #m.go_vision_viewpoint(3,"bin_L")
        # m.go_relative_pose((0.12,0,0),(0,0,0,1))
        # m.wait_till_complete()  
        # rospy.sleep(2)

@@ -12,7 +12,7 @@ sys.path.append(os.path.join(os.path.dirname(sys.path[0]),''))
 from std_msgs.msg import String,Bool,Int8,Float64
 from geometry_msgs.msg import Transform,Vector3,Quaternion
 from scooper_duper.msg import *
-from json_handler import *
+from json_handler_new import *
 from motion_executor import motion_executor
 
 from constants import *
@@ -62,7 +62,7 @@ print("Running setup and calibration...")
 stare_latch = False
 
 #Read in the pick file, set up world model.
-world_model = WorldModel( os.path.join(os.path.dirname(sys.path[0]),'vision_int_pick.json'))
+world_model = WorldModel( os.path.join(os.path.dirname(sys.path[0]),'multiple_items.json'))
 mex = motion_executor()
 
 #Set up publishing - send default values.
@@ -71,7 +71,7 @@ suction_state = False
 last_suction_state = suction_state
 suction_state_pub.publish(suction_state)
 target_item_pub = rospy.Publisher('target_item', String, queue_size=10)
-target_item = 'adventures_of_huckleberry_finn_book'
+target_item = 'mark_twain_huckleberry_finn'
 target_item_pub.publish(target_item)
 
 #Set up subscriptions - and wait until we have received a value before continuing.
@@ -152,6 +152,7 @@ while ((time.time() - run_time) < RUN_TIME_LIMIT) and (len(world_model.pick_list
             else:
                 viewpoint = viewpoint + 1 #Increment viewpoint counter
                 stare_timer = time.time() #Start the timer
+                stare_latch = True
                 state = 'endoscope_stare'
         else:
             state = 'endoscope_sweep'
@@ -162,7 +163,8 @@ while ((time.time() - run_time) < RUN_TIME_LIMIT) and (len(world_model.pick_list
             suction_state = True
             mex.set_dip_pose()
             mex.go_relative_pose((0.12,0,DOPESCOPE_OFFSET),(0,0,0,1),DIP_DOWN_SPEED, "/dip_start") ##TODO: WARNING - number is not correct in general
-            dip_stage = 0 #0 is down, 1 is up        
+            dip_stage = 0 #0 is down, 1 is up 
+            stare_latch = False       
             state = 'suction_dip'
         elif (time.time() - stare_timer) < STARE_TIME:
             state = 'endoscope_stare'
@@ -170,6 +172,7 @@ while ((time.time() - run_time) < RUN_TIME_LIMIT) and (len(world_model.pick_list
             print("About to go to:")
             print(viewpoint)
             mex.go_vision_viewpoint(viewpoint, target_item_bin)
+            stare_latch = False
             state = 'endoscope_sweep'
 
     elif (state == 'suction_dip'):
@@ -177,7 +180,7 @@ while ((time.time() - run_time) < RUN_TIME_LIMIT) and (len(world_model.pick_list
         if dip_stage == 0:
             if ((pressure_state == True) or (reached == True)):
                 dip_stage = 1
-                mex.go_relative_pose((0,0,0),(0,0,0,1), DIP_UP_SPEED, "/dip_start")
+                mex.go_relative_pose((-0.02,0,0),(0,0,0,1), DIP_UP_SPEED, "/dip_start")
                 state = 'suction_dip'
             else:
                 state = 'suction_dip'
@@ -231,7 +234,8 @@ while ((time.time() - run_time) < RUN_TIME_LIMIT) and (len(world_model.pick_list
 
     if (time.time() - print_time) > PRINT_DELAY:
         print(state)
-        print(suction_state)
+        print(target_item_bin)
+        #print(suction_state)
         print_time = time.time()
     time.sleep(0.01)
 

@@ -6,13 +6,16 @@ import sys
 from std_msgs.msg import String,Bool,Int8,Float64
 from geometry_msgs.msg import Transform,Vector3,Quaternion
 from scooper_duper.msg import *
-
+suction_state = False
 def vacuum_c_loop_callback(data):
+    global suction_state
+    suction_state = data.data
     rospy.loginfo("Vacuum control received data from suction_state")
     rospy.loginfo(data)
 
 
 def spoofer():
+    global suction_state
     rospy.init_node('vacuum', anonymous=True)
 
     pressure_sensor_pub = rospy.Publisher('pressure_sensor', Float64, queue_size=10)
@@ -23,7 +26,12 @@ def spoofer():
     #reading = 1000.54
     reading = 0
     while not rospy.is_shutdown():
-        pressure_sensor_pub.publish(reading)
+        
+        if (suction_state):
+            reading = 850
+        else:
+            reading = 1000.54  
+        pressure_sensor_pub.publish(reading) 
         rospy.loginfo("Pressure reading: {}".format(reading))
         rate.sleep()
 

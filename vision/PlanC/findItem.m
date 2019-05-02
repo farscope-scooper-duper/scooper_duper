@@ -9,6 +9,7 @@ function isFound = findItem(image, item_name, list, list_threshold)
 %load('thresholdList.mat','list_threshold')
 
 %% Perform matching and assess item apperance
+%disp(item_name)
 threshold = list_threshold(item_name);
 matches = get_matches(list, image, item_name);
 

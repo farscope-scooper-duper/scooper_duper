@@ -316,7 +316,7 @@ itemID = {'crayola_64_ct',
                   'kong_duck_dog_toy',
                   'kong_sitting_frog_dog_toy',
                   'elmers_washable_no_run_school_glue',
-                  'adventures_of_huckleberry_finn_book',
+                  'mark_twain_huckleberry_finn',
                   'paper_mate_12_count_mirado_black_warrior',
                   'sharpie_accent_tank_style_highlighters',
                   'genuine_joe_plastic_stir_sticks',
@@ -332,17 +332,17 @@ itemID = {'crayola_64_ct',
                   'safety_works_safety_glasses',
                   'mommys_helper_outlet_plugs',
                   'mead_index_cards'};
-                  
+                  %MISSING bath duck boi
       thresholdlist = {15, % balls X
                        45, % joke book X
-                       70, % crayons X
-                       15, % duck X
+                       40, % crayons X-->50?
+                       20, % duck X
                        30, % frog X
                        25, % glue X
                        110, % huckbook X
                        30, % pencils X
                        25, % sharpies X
-                       50, % Stirsticks X
+                       40, % Stirsticks X--from 50 to 40
                        20, %catfood X
                        27, %self stick notes X
                        35, %cups X
@@ -351,7 +351,7 @@ itemID = {'crayola_64_ct',
                        25, %soap X
                        30, %plug X
                        10, %brush X
-                       70, %eraser X
+                       100, %eraser X
                        70, %glasses X
                        45, %outletplugs X
                        40}; %index cards X

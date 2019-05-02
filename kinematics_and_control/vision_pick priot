@@ -1,0 +1,26 @@
+        item_features = { 
+
+            "kong_sitting_frog_dog_toy"                 : 30,
+            "kong_duck_dog_toy"                         : 20,
+            "feline_greenies_dental_treats"             : 20,
+            "crayola_64_ct"                             : 70,
+            "genuine_joe_plastic_stir_sticks"           : 50,
+            "mommys_helper_outlet_plugs"                : 30,
+            "kong_air_dog_squeakair_tennis_ball"        : 45,
+            "dove_beauty_bar"                           : 40,
+            "dr_browns_bottle_brush"                    : 10,
+            "one_with_nature_soap_dead_sea_mud"         : 25,
+            "first_years_take_and_toss_straw_cup"       : 35,
+            "safety_works_safety_glasses"               : 70,
+            "mark_twain_huckleberry_finn"               : 110,
+            "laugh_out_loud_joke_book"                  : 45,
+            "mead_index_cards"                          : 40,#Really bad item
+            "kyjen_squeakin_eggs_plush_puppies"         : 15,
+            "expo_dry_erase_board_eraser"               : 90,
+            "sharpie_accent_tank_style_highlighters"    : 25,
+            "paper_mate_12_count_mirado_black_warrior"  : 30,
+            "munchkin_white_hot_duck_bath_toy"          : 0,
+            "highland_6539_self_stick_notes"            : 27,
+            "elmers_washable_no_run_school_glue"        : 25,
+            "champion_copper_plus_spark_plug"           : 30}
+        return(item_features.get(item, 0))

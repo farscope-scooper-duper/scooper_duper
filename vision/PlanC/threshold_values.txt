@@ -2,7 +2,8 @@ feline_greenies_dental_treats
 TP: [10;39;56;82;76;44;2;101;37;22;20;25;26;25;11] 
 FP: [1;1;8;6;4;7;10;7;6;14;10;9;3;3;12;13;12]
 - 20 for back - 40 for front?
-
+--good for the front, not fro the back side
+-- be the only item in the cell
 
 first_years_take_and_toss_straw_cup
 TP: 128,122,121,30,105,60,132,24,38,38,38

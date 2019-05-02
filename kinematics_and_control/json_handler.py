@@ -23,7 +23,7 @@
 #Later still, we will want to:
 #`Keep a priority queue of target items
 #`Manage the queue so that items are added/removed/pushed back
-#`Curate the queue according to some measure of pickability
+#Curate the queue according to some measure of pickability
 
 
 import json
@@ -36,8 +36,7 @@ class WorldModel:
             self.json_data = json.load(input_file)
 
         self.work_order = self.json_data['work_order'] 
-        self.failed_picks = []
-        self.pick_list = self.target_items() #Read in first
+        self.pick_list = self.target_items() #As read, currently, later may be ordered by pickability.
         self.bin_contents = self.json_data['bin_contents']
 
         #If the pick file doesn't have any items in the tote (or on the floor), we have to make these ourselves.
@@ -45,83 +44,6 @@ class WorldModel:
         self.bin_contents.setdefault('floor', [])
     
         self.verbosity = True
-
-        self.strategise_picks()
-
-    def strategise_picks(self):
-        #Pick list order is: lonely items by pickability; crowded items by crowdedness then feature; failed picks
-        lonely_picks = []
-        crowded_picks = []
-        if (len(self.failed_picks) == len(self.pick_list)): #If every item has been failed
-            self.failed_picks = [] #We can pick any item again
-
-        for item in self.pick_list:
-            if (item in self.failed_picks):
-                pass
-            elif (len(self.items_in(self.bins_of(item)[0])) == 1): 
-                lonely_picks.append(item)
-            else:
-                crowded_picks.append(item)
-
-        lonely_picks.sort(key=self.pickability)
-        crowded_picks.sort(key= lambda i: (len(self.items_in(self.bins_of(i)[0])), self.features(i)))
-
-        self.pick_list = lonely_picks + crowded_picks + self.failed_picks    
-
-
-    def pickability(self, item): #The higher the better
-        item_pickabilities = { 
-            "kong_sitting_frog_dog_toy"                 : 1,
-            "kong_duck_dog_toy"                         : 1,
-            "feline_greenies_dental_treats"             : 1,
-            "crayola_64_ct"                             : 1,
-            "genuine_joe_plastic_stir_sticks"           : 1,
-            "mommys_helper_outlet_plugs"                : 1,
-            "kong_air_dog_squeakair_tennis_ball"        : 1,
-            "dove_beauty_bar"                           : 1,
-            "dr_browns_bottle_brush"                    : 1,
-            "one_with_nature_soap_dead_sea_mud"         : 1,
-            "first_years_take_and_toss_straw_cup"       : 1,
-            "safety_works_safety_glasses"               : 1,
-            "mark_twain_huckleberry_finn"               : 1,
-            "laugh_out_loud_joke_book"                  : 1,
-            "mead_index_cards"                          : 1,
-            "kyjen_squeakin_eggs_plush_puppies"         : 1,
-            "expo_dry_erase_board_eraser"               : 1,
-            "sharpie_accent_tank_style_highlighters"    : 1,
-            "paper_mate_12_count_mirado_black_warrior"  : 1,
-            "munchkin_white_hot_duck_bath_toy"          : 1,
-            "highland_6539_self_stick_notes"            : 1,
-            "elmers_washable_no_run_school_glue"        : 1,
-            "champion_copper_plus_spark_plug"           : 1}
-        return(item_pickabilities.get(item, 0))    
-
-    def features(self, item):
-        item_features = { 
-            "kong_sitting_frog_dog_toy"                 : 1,
-            "kong_duck_dog_toy"                         : 1,
-            "feline_greenies_dental_treats"             : 1,
-            "crayola_64_ct"                             : 1,
-            "genuine_joe_plastic_stir_sticks"           : 1,
-            "mommys_helper_outlet_plugs"                : 1,
-            "kong_air_dog_squeakair_tennis_ball"        : 1,
-            "dove_beauty_bar"                           : 1,
-            "dr_browns_bottle_brush"                    : 1,
-            "one_with_nature_soap_dead_sea_mud"         : 1,
-            "first_years_take_and_toss_straw_cup"       : 1,
-            "safety_works_safety_glasses"               : 1,
-            "mark_twain_huckleberry_finn"               : 1,
-            "laugh_out_loud_joke_book"                  : 1,
-            "mead_index_cards"                          : 1,
-            "kyjen_squeakin_eggs_plush_puppies"         : 1,
-            "expo_dry_erase_board_eraser"               : 1,
-            "sharpie_accent_tank_style_highlighters"    : 1,
-            "paper_mate_12_count_mirado_black_warrior"  : 1,
-            "munchkin_white_hot_duck_bath_toy"          : 1,
-            "highland_6539_self_stick_notes"            : 1,
-            "elmers_washable_no_run_school_glue"        : 1,
-            "champion_copper_plus_spark_plug"           : 1}
-        return(item_features.get(item, 0))
 
     def set_verbosity(self, v):
         '''Sets whether the world model should output its operations as it goes.'''        
@@ -165,7 +87,6 @@ class WorldModel:
         '''Updates the work order with the currently-believed position for each of the items.'''
         if (self.verbosity == True):
             print("Updated the work order.")
-        self.strategise_picks()
         self.work_order = [{'bin':self.bins_of(i), 'item':i} for i in self.pick_list]
 
     def pick_success(self, item_ref):
@@ -181,6 +102,7 @@ class WorldModel:
         if item_ref in self.pick_list:
             if (self.verbosity == True):
                 print("Pick failure: moved %s to the back of the pick queue." % item_ref)
-            self.failed_picks.append(item_ref)
+            self.pick_list.remove(item_ref)
+            self.pick_list.append(item_ref)
             self.update_work_order()
         

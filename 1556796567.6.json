@@ -1,0 +1,77 @@
+{
+    "bin_contents": {
+        "bin_A": [], 
+        "bin_B": [], 
+        "bin_C": [], 
+        "bin_D": [
+            "elmers_washable_no_run_school_glue"
+        ], 
+        "bin_E": [
+            "sharpie_accent_tank_style_highlighters", 
+            "paper_mate_12_count_mirado_black_warrior"
+        ], 
+        "bin_F": [], 
+        "bin_G": [
+            "first_years_take_and_toss_straw_cup", 
+            "highland_6539_self_stick_notes"
+        ], 
+        "bin_H": [
+            "one_with_nature_soap_dead_sea_mud", 
+            "laugh_out_loud_joke_book", 
+            "munchkin_white_hot_duck_bath_toy"
+        ], 
+        "bin_I": [
+            "kong_air_dog_squeakair_tennis_ball"
+        ], 
+        "bin_J": [
+            "dr_browns_bottle_brush"
+        ], 
+        "bin_K": [
+            "dove_beauty_bar", 
+            "safety_works_safety_glasses"
+        ], 
+        "bin_L": [
+            "mommys_helper_outlet_plugs", 
+            "champion_copper_plus_spark_plug", 
+            "kyjen_squeakin_eggs_plush_puppies"
+        ], 
+        "floor": [
+            "mark_twain_huckleberry_finn"
+        ], 
+        "tote": [
+            "crayola_64_ct", 
+            "kong_duck_dog_toy", 
+            "kong_sitting_frog_dog_toy", 
+            "genuine_joe_plastic_stir_sticks", 
+            "mead_index_cards", 
+            "feline_greenies_dental_treats", 
+            "expo_dry_erase_board_eraser"
+        ]
+    }, 
+    "work_order": [
+        {
+            "bin": [
+                "bin_K"
+            ], 
+            "item": "safety_works_safety_glasses"
+        }, 
+        {
+            "bin": [
+                "bin_K"
+            ], 
+            "item": "safety_works_safety_glasses"
+        }, 
+        {
+            "bin": [
+                "bin_K"
+            ], 
+            "item": "dove_beauty_bar"
+        }, 
+        {
+            "bin": [
+                "bin_H"
+            ], 
+            "item": "laugh_out_loud_joke_book"
+        }
+    ]
+}

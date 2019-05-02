@@ -11,8 +11,11 @@ cam = webcam(1);
 
 % load in lists
 tic
-load('featureList.mat', 'list')
-load('thresholdList.mat','list_threshold')
+load('featureList_all.mat', 'list')
+load('thresholdList_all.mat','list_threshold')
+
+%load('featureList.mat', 'list')%JUJU
+%load('thresholdList.mat','list_threshold')
 toc
 
 %Subscribes to the item to search for
@@ -20,9 +23,7 @@ toc
 
 masterHost = 'localhost';
 node_1 = robotics.ros.Node('node_1', masterHost);
-node_2 = robotics.ros.Node('node_2', masterHost);
-node_3 = robotics.ros.Node('node_3', masterHost);
-node_4 = robotics.ros.Node('node_4', masterHost);
+
 
 %%
 % Create a publisher and subscriber for the '/item_found' topic
@@ -57,5 +58,6 @@ while true
     
     %Publish result
     send(itemPub,result);
+    
     toc
 end
