@@ -42,7 +42,7 @@ target_item = 'elmers_washable_no_run_school_glue';
 rossubscriber('/target_item', @update_target_item);
 items = strsplit(target_item,',');
 
-targ=items(1);
+targ=items{1};
 items(1)=[];
 
 %% While loop to take picture and find item
@@ -51,21 +51,30 @@ preview(cam)
 
 while true
     tic
+    result.Data = false;
     % Get image and search for target_item
     image = snapshot(cam);    
-    positive = findItem(image, target_item, list, list_threshold);    
+    positive = findItem(image, targ, list, list_threshold);    
     
     %Check for false positives
     if positive ==true
-        false_postive=false; %init
-        i=0;
-        while(false_positive==false || i<length(items))
+        false_positive=false; %init
+        i=1;
+        fprintf('Searching for false positives...');
+        
+        for i = items
+           if (false_positive == false)
+              false_positive = findItem(image, i, list, list_threshold); 
+           end
+        end
+        while(false_positive==false || i<=length(items))
             false_positive = findItem(image, items(i), list, list_threshold);
             i=i+1;
         end
-        if false_postive ==true
+        if false_positive ==true
             result.Data =false;
-            fprintf('False postive found');
+            fprintf('False positive found: %s',items(i));
+            fprintf('Result rejected');
         else
             result.Data =true;
         end

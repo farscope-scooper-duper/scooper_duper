@@ -161,7 +161,7 @@ while ((time.time() - run_time) < RUN_TIME_LIMIT) and (len(world_model.pick_list
             else:
                 viewpoint = viewpoint + 1 #Increment viewpoint counter
                 stare_timer = time.time() #Start the timer
-                stare_latch = True
+                #stare_latch = True
                 state = 'endoscope_stare'
         else:
             state = 'endoscope_sweep'
@@ -173,7 +173,7 @@ while ((time.time() - run_time) < RUN_TIME_LIMIT) and (len(world_model.pick_list
             mex.set_dip_pose()
             mex.go_relative_pose((0.12,0,DOPESCOPE_OFFSET),(0,0,0,1),DIP_DOWN_SPEED, "/dip_start") ##TODO: WARNING - number is not correct in general
             dip_stage = 0 #0 is down, 1 is up 
-            stare_latch = False       
+            #stare_latch = False       
             state = 'suction_dip'
         elif (time.time() - stare_timer) < STARE_TIME:
             state = 'endoscope_stare'
@@ -181,7 +181,7 @@ while ((time.time() - run_time) < RUN_TIME_LIMIT) and (len(world_model.pick_list
             print("About to go to:")
             print(viewpoint)
             mex.go_vision_viewpoint(viewpoint, target_item_bin)
-            stare_latch = False
+            #stare_latch = False
             state = 'endoscope_sweep'
 
     elif (state == 'suction_dip'):

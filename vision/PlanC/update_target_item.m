@@ -1,5 +1,10 @@
 function update_target_item(~,message)
-global target_item;
+global items;
+global targ;
 target_item = message.Data;
 
+items = strsplit(target_item,',');
+
+targ=items{1};
+items(1)=[];
 end

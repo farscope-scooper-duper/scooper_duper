@@ -8,29 +8,6 @@ load refIMs.mat
 %open featureList.mat
 
 %itemList = cell(1,6,length('refIms.mat'));
-
-itemID = {'crayola_64_ct',
-          'mommys_helper_outlet_plugs',
-          'kong_duck_dog_toy',
-          'rolodex_jumbo_pencil_cup',
-          'stanley_66_052',
-          'genuine_joe_plastic_stir_sticks',
-          'dr_browns_bottle_brush',
-          'paper_mate_12_count_mirado_black_warrior',
-          'expo_dry_erase_board_eraser',
-          'kong_sitting_frog_dog_toy',
-          'highland_6539_self_stick_notes',
-          'mead_index_cards',
-          'kyjen_squeakin_eggs_plush_puppies',
-          'munchkin_white_hot_duck_bath_toy',
-          'safety_works_safety_glasses',
-          'first_years_take_and_toss_straw_cup',
-          'kong_air_dog_squeakair_tennis_ball',
-          'sharpie_accent_tank_style_highlighters',
-          'elmers_washable_no_run_school_glue',
-          'champion_copper_plus_spark_plug',
-          'laugh_out_loud_joke_book',
-          'feline_greenies_dental_treats'};
       
       
      %% balls object
@@ -286,7 +263,30 @@ itemID = {'crayola_64_ct',
       index_SURF_g = {all_points, all_features};
       
       %% Create all lists here
-      
+            itemlist = {'kyjen_squeakin_eggs_plush_puppies',
+                  'laugh_out_loud_joke_book',
+                  'crayola_64_ct',          
+                  'kong_duck_dog_toy',
+                  'kong_sitting_frog_dog_toy',
+                  'elmers_washable_no_run_school_glue',
+                  'mark_twain_huckleberry_finn',
+                  'paper_mate_12_count_mirado_black_warrior',
+                  'sharpie_accent_tank_style_highlighters',
+                  'genuine_joe_plastic_stir_sticks',
+                  'feline_greenies_dental_treats',
+                  'highland_6539_self_stick_notes',
+                  'first_years_take_and_toss_straw_cup',
+                  'kong_air_dog_squeakair_tennis_ball',
+                  'dove_beauty_bar',
+                  'one_with_nature_soap_dead_sea_mud',
+                  'champion_copper_plus_spark_plug',
+                  'dr_browns_bottle_brush',
+                  'expo_dry_erase_board_eraser',
+                  'safety_works_safety_glasses',
+                  'mommys_helper_outlet_plugs',
+                  'mead_index_cards'};
+                  %MISSING bath duck boi!!!!!!
+      %% Features
       SURFlist_g = {balls_SURF_g,
                        book_SURF_g,
                        crayon_SURF_g,
@@ -309,30 +309,10 @@ itemID = {'crayola_64_ct',
                        glasses_SURF_g,
                        outletplugs_SURF_g,
                        index_SURF_g};
-                   
-      itemlist = {'kyjen_squeakin_eggs_plush_puppies',
-                  'laugh_out_loud_joke_book',
-                  'crayola_64_ct',          
-                  'kong_duck_dog_toy',
-                  'kong_sitting_frog_dog_toy',
-                  'elmers_washable_no_run_school_glue',
-                  'mark_twain_huckleberry_finn',
-                  'paper_mate_12_count_mirado_black_warrior',
-                  'sharpie_accent_tank_style_highlighters',
-                  'genuine_joe_plastic_stir_sticks',
-                  'feline_greenies_dental_treats',
-                  'highland_6539_self_stick_notes',
-                  'first_years_take_and_toss_straw_cup',
-                  'kong_air_dog_squeakair_tennis_ball',
-                  'dove_beauty_bar',
-                  'one_with_nature_soap_dead_sea_mud',
-                  'champion_copper_plus_spark_plug',
-                  'dr_browns_bottle_brush',
-                  'expo_dry_erase_board_eraser',
-                  'safety_works_safety_glasses',
-                  'mommys_helper_outlet_plugs',
-                  'mead_index_cards'};
-                  %MISSING bath duck boi
+      list = containers.Map(itemlist,SURFlist_g);
+      save('featureList_all.mat','list');           
+
+      %% Thresholds
       thresholdlist = {15, % balls X
                        45, % joke book X
                        40, % crayons X-->50?
@@ -356,10 +336,8 @@ itemID = {'crayola_64_ct',
                        45, %outletplugs X
                        40}; %index cards X
               
-      list = containers.Map(itemlist,SURFlist_g);
-      list_threshold = containers.Map(itemlist,thresholdlist);
       
-      save('featureList_all.mat','list');
+      list_threshold = containers.Map(itemlist,thresholdlist);
       save('thresholdList_all.mat','list_threshold');
 
 %% Threshold items list

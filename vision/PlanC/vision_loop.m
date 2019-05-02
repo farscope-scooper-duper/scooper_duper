@@ -37,39 +37,41 @@ result=rosmessage('std_msgs/Bool');
 %msg.Data = 'laugh_out_loud_joke_book';
 %
 % 
-global target_item;
-target_item = 'elmers_washable_no_run_school_glue';
-rossubscriber('/target_item', @update_target_item);
-items = strsplit(target_item,',');
+global targ;
+global items;
+targ = 'elmers_washable_no_run_school_glue';
+items = [];
 
-targ=items(1);
-items(1)=[];
+rossubscriber('/target_item', @update_target_item);
+
 
 %% While loop to take picture and find item
 % Note: need callback function to update for new /target_item
 preview(cam)
-result.Data = false;
+
 while true
     tic
+    result.Data = false;
     % Get image and search for target_item
     image = snapshot(cam);    
     positive = findItem(image, targ, list, list_threshold);    
     
     %Check for false positives
-    if positive ==true
-        false_postive=false; %init
-        i=0;
+    if positive == true
+        false_positive = false; %init
         fprintf('Searching for false positives...');
-        while(false_positive==false || i<length(items))
-            false_positive = findItem(image, items(i), list, list_threshold);
-            i=i+1;
+        
+        for i = items
+           if (false_positive == false)
+              false_positive = findItem(image, i{1}, list, list_threshold); 
+           end
         end
-        if false_postive ==true
-            result.Data =false;
-            fprintf('False postive found: %s',items(i));
-            fprintf('Result rejected');
+        if false_positive == true
+            result.Data = false;
+            %fprintf('False positive found: %s',items(i));
+            %fprintf('Result rejected');
         else
-            result.Data =true;
+            result.Data = true;
         end
     end
 
