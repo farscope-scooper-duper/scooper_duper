@@ -274,8 +274,7 @@ load refIMs.mat
       all_features = [features1;features2];
       
       rubberduck_SURF_g = {all_points, all_features};
-
-      %% Itemlist
+      %% Create all lists here
             itemlist = {'kyjen_squeakin_eggs_plush_puppies',
                   'laugh_out_loud_joke_book',
                   'crayola_64_ct',          
@@ -297,9 +296,8 @@ load refIMs.mat
                   'expo_dry_erase_board_eraser',
                   'safety_works_safety_glasses',
                   'mommys_helper_outlet_plugs',
-                  'mead_index_cards',
-                  'munchkin_white_hot_duck_bath_toy'};
-      
+                  'mead_index_cards'};
+                  %MISSING bath duck boi!!!!!!
       %% Features
       SURFlist_g = {balls_SURF_g,
                        book_SURF_g,
@@ -322,12 +320,41 @@ load refIMs.mat
                        eraser_SURF_g,
                        glasses_SURF_g,
                        outletplugs_SURF_g,
-                       index_SURF_g,
-                       rubberduck_SURF_g};
+<<<<<<< HEAD
+                       index_SURF_g};
       list = containers.Map(itemlist,SURFlist_g);
       save('featureList_all.mat','list');           
 
       %% Thresholds
+=======
+                       index_SURF_g,
+		       rubberduck_SURF_g};
+
+      itemlist = {'kyjen_squeakin_eggs_plush_puppies',
+                  'laugh_out_loud_joke_book',
+                  'crayola_64_ct',          
+                  'kong_duck_dog_toy',
+                  'kong_sitting_frog_dog_toy',
+                  'elmers_washable_no_run_school_glue',
+                  'mark_twain_huckleberry_finn',
+                  'paper_mate_12_count_mirado_black_warrior',
+                  'sharpie_accent_tank_style_highlighters',
+                  'genuine_joe_plastic_stir_sticks',
+                  'feline_greenies_dental_treats',
+                  'highland_6539_self_stick_notes',
+                  'first_years_take_and_toss_straw_cup',
+                  'kong_air_dog_squeakair_tennis_ball',
+                  'dove_beauty_bar',
+                  'one_with_nature_soap_dead_sea_mud',
+                  'champion_copper_plus_spark_plug',
+                  'dr_browns_bottle_brush',
+                  'expo_dry_erase_board_eraser',
+                  'safety_works_safety_glasses',
+                  'mommys_helper_outlet_plugs',
+                  'mead_index_cards',
+		  'munchkin_white_hot_duck_bath_toy'};
+
+>>>>>>> 67322cd0305af7a578db41ac63f434c2ab97e8b2
       thresholdlist = {15, % balls X
                        45, % joke book X
                        40, % crayons X-->50?
