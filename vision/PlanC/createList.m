@@ -3,7 +3,7 @@
 % ran once if updating item list or thresholds.
 clc;
 
-%load refIMs.mat
+load refIMs.mat
 
 %open featureList.mat
 
@@ -278,10 +278,11 @@ itemID = {'crayola_64_ct',
       %% Index (for real)
       
       index_front = imresize(imread('index_front.jpg'),0.3);
-        
-      [points1, features1] = SURFextractfeatures_gray(eraser_bottom);
-      all_points = [points1];
-      all_features = [features1];
+      index_top = imresize(imread('index_top.jpg'),0.3);
+      [points1, features1] = SURFextractfeatures_gray(index_top);
+      [points2, features2] = SURFextractfeatures_gray(index_front);
+      all_points = [points1;points2];
+      all_features = [features1;features2];
       index_SURF_g = {all_points, all_features};
       
       %% Create all lists here
@@ -330,30 +331,30 @@ itemID = {'crayola_64_ct',
                   'expo_dry_erase_board_eraser',
                   'safety_works_safety_glasses',
                   'mommys_helper_outlet_plugs',
-                  'index cards'};
+                  'mead_index_cards'};
                   
-      thresholdlist = {20, % balls
-                       40, % joke book
-                       100, % crayons
-                       15, % duck
-                       30, % frog
-                       15, % glue
-                       120, % huckbook
-                       30, % pencils
-                       15, % sharpies
-                       60, % Stirsticks
-                       80, %catfood
-                       80, %index (self stick!)
-                       50, %cups
-                       40, %tennis
-                       50, %dove
-                       60, %soap
-                       40, %plug
-                       30, %brush
-                       70, %eraser
-                       40, %glasses  
-                       30, %outletplugs
-                       60}; %index cards
+      thresholdlist = {15, % balls X
+                       45, % joke book X
+                       70, % crayons X
+                       15, % duck X
+                       30, % frog X
+                       25, % glue X
+                       110, % huckbook X
+                       30, % pencils X
+                       25, % sharpies X
+                       50, % Stirsticks X
+                       20, %catfood X
+                       27, %self stick notes X
+                       35, %cups X
+                       45, %tennis X
+                       40, %dove X
+                       25, %soap X
+                       30, %plug X
+                       10, %brush X
+                       70, %eraser X
+                       70, %glasses X
+                       45, %outletplugs X
+                       40}; %index cards X
               
       list = containers.Map(itemlist,SURFlist_g);
       list_threshold = containers.Map(itemlist,thresholdlist);
