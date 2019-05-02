@@ -70,9 +70,15 @@ suction_state_pub = rospy.Publisher('suction_state', Bool, queue_size=10)
 suction_state = False
 last_suction_state = suction_state
 suction_state_pub.publish(suction_state)
+
 target_item_pub = rospy.Publisher('target_item', String, queue_size=10)
-target_item = 'mark_twain_huckleberry_finn'
-target_item_pub.publish(target_item)
+target_item = world_model.pick_list[0]
+target_item_bin = world_model.bins_of(target_item)[0]
+bin_items = world_model.items_in(target_item_bin)
+bin_items.insert(0, bin_items.pop(bin_items.index(target_item)))
+
+bin_items_string = ','.join(bin_items)
+target_item_pub.publish(bin_items_string)
 
 #Set up subscriptions - and wait until we have received a value before continuing.
 rospy.Subscriber("item_in_view", Bool , c_loop_vision_callback)
@@ -111,7 +117,7 @@ vacuum_pub_time = time.time()
 
 #The operations run until there is nothing else left on the pick list, or until the time limit has been reached.
 while ((time.time() - run_time) < RUN_TIME_LIMIT) and (len(world_model.pick_list) > 0) and (not rospy.is_shutdown()):
-    target_item_pub.publish(target_item)
+    target_item_pub.publish(bin_items_string)
     
     if (time.time() - vacuum_pub_time) > 0.8 or (last_suction_state!=suction_state):
         vacuum_pub_time = time.time()
@@ -122,6 +128,9 @@ while ((time.time() - run_time) < RUN_TIME_LIMIT) and (len(world_model.pick_list
         #Pop top of pick queue
         target_item = world_model.pick_list[0]
         target_item_bin = world_model.bins_of(target_item)[0]
+        bin_items = world_model.items_in(target_item_bin)
+        bin_items.insert(0, bin_items.pop(bin_items.index(target_item)))
+        bin_items_string = ','.join(bin_items)
 
         op_time = time.time() #Time of start of bin move operation
         mex.go_waypoint(target_item_bin) #Tell motion exectutor to move to bin mouth
@@ -233,9 +242,10 @@ while ((time.time() - run_time) < RUN_TIME_LIMIT) and (len(world_model.pick_list
             state = 'release_item'
 
     if (time.time() - print_time) > PRINT_DELAY:
-        print(state)
-        print(target_item_bin)
-        #print(suction_state)
+        print("State: {}".format(state))
+        print("Target item {} in {}".format(target_item, target_item_bin))
+        print("Time left: {} seconds".format(int(RUN_TIME_LIMIT - (time.time() - run_time))))
+        print()
         print_time = time.time()
     time.sleep(0.01)
 

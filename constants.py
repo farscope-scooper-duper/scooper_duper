@@ -19,7 +19,7 @@ SPEED_SCALE = 0.1
 VACUUM_OFF_THRESH = 1005 #Above this and we assume no suction
 OBJECT_CONTACT_THRESH = 875 #Below this is a blockage - assume we hold an item
 
-PRINT_DELAY = 0.5 #Seconds?
+PRINT_DELAY = 1 #Second
 
 DIP_UP_SPEED = 0.02
 DIP_DOWN_SPEED = 0.03

@@ -30,7 +30,7 @@ def spoofer():
         if (suction_state):
             reading = 850
         else:
-            reading = 1000.54  
+            reading = 1010
         pressure_sensor_pub.publish(reading) 
         rospy.loginfo("Pressure reading: {}".format(reading))
         rate.sleep()
