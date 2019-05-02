@@ -73,8 +73,9 @@ itemID = {'crayola_64_ct',
       
       [points1, features1] = SURFextractfeatures_gray(duck_back);
       [points2, features2] = SURFextractfeatures_gray(duck_front);
-      all_points = [points1;points2];
-      all_features = [features1;features2];
+      [points3, features3] = SURFextractfeatures_gray(duck_front2);
+      all_points = [points1;points2;points3];
+      all_features = [features1;features2;features3];
       
       duck_SURF_g = {all_points, all_features};
       
@@ -285,6 +286,17 @@ itemID = {'crayola_64_ct',
       all_features = [features1;features2];
       index_SURF_g = {all_points, all_features};
       
+      %% RUBBERduck
+
+      rubberduck_front = imresize(imread('rubberduck_front.jpg'),0.3);
+      rubberduck_back= imresize(imreal('rubberduck_back.jpg'),0.3);
+      
+      [points1, features1] = SURFextractfeatures_gray(rubberduck_back);
+      [points2, features2] = SURFextractfeatures_gray(rubberduck_front);
+      all_points = [points1;points2];
+      all_features = [features1;features2];
+      
+      rubberduck_SURF_g = {all_points, all_features};
       %% Create all lists here
       
       SURFlist_g = {balls_SURF_g,
@@ -308,8 +320,9 @@ itemID = {'crayola_64_ct',
                        eraser_SURF_g,
                        glasses_SURF_g,
                        outletplugs_SURF_g,
-                       index_SURF_g};
-                   
+                       index_SURF_g,
+		       rubberduck_SURF_g};
+
       itemlist = {'kyjen_squeakin_eggs_plush_puppies',
                   'laugh_out_loud_joke_book',
                   'crayola_64_ct',          
@@ -331,8 +344,9 @@ itemID = {'crayola_64_ct',
                   'expo_dry_erase_board_eraser',
                   'safety_works_safety_glasses',
                   'mommys_helper_outlet_plugs',
-                  'mead_index_cards'};
-                  %MISSING bath duck boi
+                  'mead_index_cards',
+		  'munchkin_white_hot_duck_bath_toy'};
+
       thresholdlist = {15, % balls X
                        45, % joke book X
                        40, % crayons X-->50?
@@ -354,26 +368,11 @@ itemID = {'crayola_64_ct',
                        100, %eraser X
                        70, %glasses X
                        45, %outletplugs X
-                       40}; %index cards X
-              
+                       40,  %indexcards
+		       30}; %rubberduck
       list = containers.Map(itemlist,SURFlist_g);
       list_threshold = containers.Map(itemlist,thresholdlist);
       
       save('featureList_all.mat','list');
       save('thresholdList_all.mat','list_threshold');
-
-%% Threshold items list
-
-% balls ~ 20-25
-% jokebook ~ 40 (v good - <15 FP and ~120 TP)
-% crayon ~ 100 (v good <40 FP, 140-200 TP) 
-% Duck ~ 15
-% Frog ~ 30
-% Glue ~ 15 (lowish response ~20 (upto 34 on back) but low FP ~5)
-% hukbook ~ 120 (v strong response, 70+ on FP, nearly 400 on TP)
-% pencils ~ 30 (poor, gets 20-25 false positives and true positives)
-% sharpie ~ 15 (very tight on false positives- scores 20-40, but 13 on background)
-% Stir sticks ~ 60 (v good, <15 fp,  120 tp)
-
-% ADD MORE BELOW WHEN TESTING
 
