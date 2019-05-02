@@ -62,7 +62,7 @@ print("Running setup and calibration...")
 stare_latch = False
 
 #Read in the pick file, set up world model.
-world_model = WorldModel( os.path.join(os.path.dirname(sys.path[0]),'multiple_items.json'))
+world_model = WorldModel( os.path.join(os.path.dirname(sys.path[0]),'other_team.json'))
 mex = motion_executor()
 
 #Set up publishing - send default values.
@@ -118,6 +118,12 @@ vacuum_pub_time = time.time()
 #The operations run until there is nothing else left on the pick list, or until the time limit has been reached.
 while ((time.time() - run_time) < RUN_TIME_LIMIT) and (len(world_model.pick_list) > 0) and (not rospy.is_shutdown()):
     target_item_pub.publish(bin_items_string)
+    if (world_model.viewpoint_toggle):
+        NUMBER_OF_VIEWPOINTS = NUMBER_OF_VIEWPOINTS2
+    else:
+        NUMBER_OF_VIEWPOINTS = NUMBER_OF_VIEWPOINTS1
+
+    LAST_VIEWPOINT = NUMBER_OF_VIEWPOINTS -1
     
     if (time.time() - vacuum_pub_time) > 0.8 or (last_suction_state!=suction_state):
         vacuum_pub_time = time.time()
@@ -143,7 +149,7 @@ while ((time.time() - run_time) < RUN_TIME_LIMIT) and (len(world_model.pick_list
             state = 'get_target_item'
         elif (bin_reached == True):
             viewpoint = 0
-            mex.go_vision_viewpoint(viewpoint, target_item_bin) #Tell motion executor to go to first viewpoint
+            mex.go_vision_viewpoint(viewpoint, target_item_bin, world_model.viewpoint_toggle) #Tell motion executor to go to first viewpoint
             state = 'endoscope_sweep'
         else:
             state = 'move_to_bin'
@@ -154,7 +160,6 @@ while ((time.time() - run_time) < RUN_TIME_LIMIT) and (len(world_model.pick_list
         if (viewpoint_reached == True):
             if (viewpoint == LAST_VIEWPOINT): #If we're at the last viewpoint (which should be the bin mouth again)
                 viewpoint = 0
-                world_model.pick_failure(target_item)
                 suction_state = False
                 mex.go_waypoint(target_item_bin)
                 state = 'move_to_mouth'
@@ -180,7 +185,7 @@ while ((time.time() - run_time) < RUN_TIME_LIMIT) and (len(world_model.pick_list
         else:
             print("About to go to:")
             print(viewpoint)
-            mex.go_vision_viewpoint(viewpoint, target_item_bin)
+            mex.go_vision_viewpoint(viewpoint, target_item_bin,world_model.viewpoint_toggle)
             #stare_latch = False
             state = 'endoscope_sweep'
 
@@ -200,7 +205,7 @@ while ((time.time() - run_time) < RUN_TIME_LIMIT) and (len(world_model.pick_list
                     state = 'move_to_mouth'
                 else: #Not in contact with item
                     suction_state = False #Might want checks at the start of appropriate states to see if the suction is on or not.
-                    mex.go_vision_viewpoint(viewpoint, target_item_bin)
+                    mex.go_vision_viewpoint(viewpoint, target_item_bin,world_model.viewpoint_toggle)
                     state = 'endoscope_sweep'
             else:
                 state = 'suction_dip'

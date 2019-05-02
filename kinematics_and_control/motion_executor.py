@@ -397,7 +397,7 @@ class motion_executor():
         self.broadcaster.sendTransform(static_transformStamped)
         rospy.sleep(0.1)
         
-    def go_vision_viewpoint(self,vision_id,bin_id):
+    def go_vision_viewpoint(self,vision_id,bin_id,viewpoint_mode = True):
         print("Going to viewpoint:" + str(vision_id) +" at " + bin_id)
 
         #N.B. Change constants.py when switching between these.
@@ -419,28 +419,52 @@ class motion_executor():
         # files        
         jump_size = 0.08;
         sweep_x = 0.02
-        l_file = jump_size
-        c_file =  0
-        r_file = -jump_size
-        rank_1 = 2 * jump_size
-        rank_2 = 3 * jump_size
-        rank_3 = 4 * jump_size
-        rank_4 = 5 * jump_size   
-        rank_5 = 5.5 * jump_size
+
         #(0, r_file, rank_5), (0, c_file, rank_5), (0, l_file, rank_5),  
-        viewpoint_positions = (
-                               (sweep_x, l_file, rank_4), (sweep_x, c_file, rank_4), (sweep_x, r_file, rank_4),
-                               (sweep_x, r_file, rank_3), (sweep_x, c_file, rank_3), (sweep_x, l_file, rank_3),
-                               (sweep_x, l_file, rank_2), (sweep_x, c_file, rank_2), (sweep_x, r_file, rank_2),
-                               (sweep_x, r_file, rank_1), (sweep_x, c_file, rank_1), (sweep_x, l_file, rank_1),
-                               (0, 0, 0))                
-        #(0,0,0), (0,0,0), (0,0,0),               
-        viewpoint_rotations = np.array(( 
-                                        (0,0,0), (0,0,0), (0,0,0),
-                                        (0,0,0), (0,0,0), (0,0,0),
-                                        (0,0,0), (0,0,0), (0,0,0),
-                                        (0,0,0), (0,0,0), (0,0,0), 
-                                        (0,0,0)))
+        if (viewpoint_mode==False):
+            l_file = jump_size
+            c_file =  0
+            r_file = -jump_size
+            rank_1 = 2 * jump_size
+            rank_2 = 3 * jump_size
+            rank_3 = 4 * jump_size
+            rank_4 = 5 * jump_size   
+            rank_5 = 5.5 * jump_size
+            viewpoint_positions = (
+                                   (sweep_x, l_file, rank_4), (sweep_x, c_file, rank_4), (sweep_x, r_file, rank_4),
+                                   (sweep_x, r_file, rank_3), (sweep_x, c_file, rank_3), (sweep_x, l_file, rank_3),
+                                   (sweep_x, l_file, rank_2), (sweep_x, c_file, rank_2), (sweep_x, r_file, rank_2),
+                                   (sweep_x, r_file, rank_1), (sweep_x, c_file, rank_1), (sweep_x, l_file, rank_1),
+                                   (0, 0, 0))                
+            #(0,0,0), (0,0,0), (0,0,0),               
+            viewpoint_rotations = np.array(( 
+                                            (0,0,0), (0,0,0), (0,0,0),
+                                            (0,0,0), (0,0,0), (0,0,0),
+                                            (0,0,0), (0,0,0), (0,0,0),
+                                            (0,0,0), (0,0,0), (0,0,0), 
+                                            (0,0,0)))
+        else:
+            l_file = jump_size/2
+            c_file =  0
+            r_file = -jump_size/2
+
+            rank_2 = 3 * jump_size - jump_size/2
+            rank_3 = 4 * jump_size - jump_size/2
+            rank_4 = 5 * jump_size - jump_size/2
+            viewpoint_positions = (
+                                   (sweep_x, l_file, rank_4), (sweep_x, r_file, rank_4),
+                                   (sweep_x, r_file, rank_3), (sweep_x, l_file, rank_3),
+                                   (sweep_x, l_file, rank_2), (sweep_x, r_file, rank_2),
+                                   (0, 0, 0),(0, 0, 0),(0, 0, 0),
+                                   (0, 0, 0),(0, 0, 0),(0, 0, 0),
+                                   (0, 0, 0))                
+            #(0,0,0), (0,0,0), (0,0,0),               
+            viewpoint_rotations = np.array(( 
+                                            (0,0,0), (0,0,0), (0,0,0),
+                                            (0,0,0), (0,0,0), (0,0,0),
+                                            (0,0,0), (0,0,0), (0,0,0),
+                                            (0,0,0), (0,0,0), (0,0,0), 
+                                            (0,0,0)))
         viewpoint_rotations = np.deg2rad(viewpoint_rotations)
 
         viewpoint_pose = geometry_msgs.msg.PoseStamped()
@@ -492,8 +516,46 @@ if __name__ == '__main__':
        # m.wait_till_complete()           
         m.go_waypoint("bin_L")
         m.wait_till_complete()    
-        m.go_waypoint_mouth("bin_L")
+        m.go_vision_viewpoint(0,"bin_L",1)
+        m.wait_till_complete()  
+        rospy.sleep(1)   
+        m.go_vision_viewpoint(1,"bin_L",1)
+        m.wait_till_complete()   
+        rospy.sleep(1) 
+        m.go_vision_viewpoint(2,"bin_L",1)
+        m.wait_till_complete()   
+        rospy.sleep(1)  
+        m.go_vision_viewpoint(3,"bin_L",1)
+        m.wait_till_complete()  
+        rospy.sleep(1)   
+        m.go_vision_viewpoint(4,"bin_L",1)
+        m.wait_till_complete()    
+        rospy.sleep(1) 
+        m.go_vision_viewpoint(5,"bin_L",1)
         m.wait_till_complete()
+        rospy.sleep(1) 
+        m.go_vision_viewpoint(6,"bin_L",1)
+        m.wait_till_complete()
+        rospy.sleep(1) 
+        m.go_vision_viewpoint(7,"bin_L",1)
+        m.wait_till_complete()
+        rospy.sleep(1) 
+        m.go_vision_viewpoint(8,"bin_L",1)
+        m.wait_till_complete()
+        rospy.sleep(1) 
+        m.go_vision_viewpoint(9,"bin_L",1)
+        m.wait_till_complete()
+        rospy.sleep(1) 
+        m.go_vision_viewpoint(10,"bin_L",1)
+        m.wait_till_complete()
+        rospy.sleep(1) 
+        m.go_vision_viewpoint(11,"bin_L",1)
+        m.wait_till_complete()
+        rospy.sleep(1) 
+        m.go_vision_viewpoint(12,"bin_L",1)
+        m.wait_till_complete()
+        rospy.sleep(1) 
+        print("COMPLETED")
         #m.go_vision_viewpoint(0,"bin_L")
         #m.wait_till_complete() 
         #rospy.sleep(1)   

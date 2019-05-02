@@ -47,7 +47,7 @@ load refIMs.mat
       
       
       %% duck
-      
+      duck_front2= imresize(imread('duck_front2.jpg'),0.3);
       [points1, features1] = SURFextractfeatures_gray(duck_back);
       [points2, features2] = SURFextractfeatures_gray(duck_front);
       [points3, features3] = SURFextractfeatures_gray(duck_front2);
@@ -266,7 +266,7 @@ load refIMs.mat
       %% RUBBERduck
 
       rubberduck_front = imresize(imread('rubberduck_front.jpg'),0.3);
-      rubberduck_back= imresize(imreal('rubberduck_back.jpg'),0.3);
+      rubberduck_back= imresize(imread('rubberduck_back.jpg'),0.3);
       
       [points1, features1] = SURFextractfeatures_gray(rubberduck_back);
       [points2, features2] = SURFextractfeatures_gray(rubberduck_front);
@@ -274,6 +274,8 @@ load refIMs.mat
       all_features = [features1;features2];
       
       rubberduck_SURF_g = {all_points, all_features};
+      
+      
 
       %% Itemlist
             itemlist = {'kyjen_squeakin_eggs_plush_puppies',
@@ -334,7 +336,7 @@ load refIMs.mat
                        20, % duck X
                        30, % frog X
                        25, % glue X
-                       110, % huckbook X
+                       80, % huckbook X
                        30, % pencils X
                        25, % sharpies X
                        40, % Stirsticks X--from 50 to 40
@@ -350,7 +352,7 @@ load refIMs.mat
                        70, %glasses X
                        45, %outletplugs X
                        40,  %indexcards
-		               30}; %rubberduck
+		               7}; %rubberduck
   
       list_threshold = containers.Map(itemlist,thresholdlist);
       save('thresholdList_all.mat','list_threshold');

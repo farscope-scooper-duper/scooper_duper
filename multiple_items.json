@@ -1,11 +1,12 @@
 {
     "bin_contents": {
         "bin_A": [
-            "kong_duck_dog_toy"
+            "kong_sitting_frog_dog_toy"
+
         ],
         "bin_B": [
             "mark_twain_huckleberry_finn",
-            "kong_sitting_frog_dog_toy"
+            "kong_duck_dog_toy"
         ],
         "bin_C": [
             "feline_greenies_dental_treats",
@@ -54,7 +55,7 @@
             "item": "mark_twain_huckleberry_finn"
         },        
         {
-            "bin": "bin_B",
+            "bin": "bin_A",
             "item": "kong_sitting_frog_dog_toy"
         },         
         {
@@ -90,7 +91,7 @@
             "item": "laugh_out_loud_joke_book"
         },
         {
-            "bin": "bin_A",
+            "bin": "bin_B",
             "item": "kong_duck_dog_toy"
         }
     ]

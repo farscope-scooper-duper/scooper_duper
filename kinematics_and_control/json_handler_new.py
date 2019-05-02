@@ -45,15 +45,21 @@ class WorldModel:
         self.bin_contents.setdefault('floor', [])
     
         self.verbosity = True
-
+        self.viewpoint_toggle = False
         self.strategise_picks()
+
 
     def strategise_picks(self):
         #Pick list order is: lonely items by pickability; crowded items by crowdedness then feature; failed picks
         lonely_picks = []
         crowded_picks = []
+        print("Pick list length: {}".format(len(self.pick_list)))
+        print("Failed list length: {}".format(len(self.failed_picks)))
+        print("Viewpoint toggle: {}".format(self.viewpoint_toggle))       
         if (len(self.failed_picks) == len(self.pick_list)): #If every item has been failed
             self.failed_picks = [] #We can pick any item again
+            self.viewpoint_toggle = not self.viewpoint_toggle
+
 
         for item in self.pick_list:
             if (item in self.failed_picks):
@@ -156,6 +162,7 @@ class WorldModel:
 
     def output_to_file(self, output_file_name):
         '''Writes the current state to the given output file.'''
+        self.update_work_order()
         json_data = {'work_order': self.work_order, 'bin_contents': self.bin_contents}
         with open(output_file_name, 'w') as output_file:
             json.dump(json_data, output_file, sort_keys=True, indent=4)

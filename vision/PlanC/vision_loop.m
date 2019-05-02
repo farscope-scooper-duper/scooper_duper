@@ -66,7 +66,7 @@ while true
               false_positive = findItem(image, i{1}, list, list_threshold); 
            end
         end
-        if false_positive == true
+        if (false_positive == true && list_threshold(i{1})>30) 
             result.Data = false;
             %fprintf('False positive found: %s',items(i));
             %fprintf('Result rejected');
