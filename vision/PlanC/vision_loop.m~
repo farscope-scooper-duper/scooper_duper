@@ -48,26 +48,24 @@ items(1)=[];
 %% While loop to take picture and find item
 % Note: need callback function to update for new /target_item
 preview(cam)
-result.Data = false;
+
 while true
     tic
     % Get image and search for target_item
     image = snapshot(cam);    
-    positive = findItem(image, targ, list, list_threshold);    
+    positive = findItem(image, target_item, list, list_threshold);    
     
     %Check for false positives
     if positive ==true
         false_postive=false; %init
         i=0;
-        fprintf('Searching for false positives...');
         while(false_positive==false || i<length(items))
             false_positive = findItem(image, items(i), list, list_threshold);
             i=i+1;
         end
         if false_postive ==true
             result.Data =false;
-            fprintf('False postive found: %s',items(i));
-            fprintf('Result rejected');
+            fprintf('False postive found');
         else
             result.Data =true;
         end
