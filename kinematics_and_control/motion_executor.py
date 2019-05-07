@@ -112,7 +112,7 @@ class motion_executor():
         #Build the shelfs at (x,y,z) (in world frame)
         self.build_scene(shelf_config.shelving_position)
         self.clear_plan()
-    
+        self.new_pose = False
     def addgripper(self):
         if self.addgrip == True:
             #ee_link frame
@@ -341,7 +341,9 @@ class motion_executor():
             #DISABLED due to bug where if you start in the same pose as goal_pose but motion executor's goal_pose is not set then motion never is marked as complete
 
             self.goal_pose = pose_stamped.pose
-            
+            self.new_pose = True
+            self.goal_pose_stamped = pose_stamped
+
             static_transformStamped = geometry_msgs.msg.TransformStamped()
             static_transformStamped.header.stamp = rospy.Time.now()
             static_transformStamped.header.frame_id = "/world"
@@ -369,7 +371,7 @@ class motion_executor():
             #compute the trajectory
             self.plan = self.compute_plan(speed_scale)
 
-            
+          
             #Fixes "start point deviates from current robot state " bug 
             current_state = self.group.get_current_joint_values()
             self.plan.joint_trajectory.points[0].positions = current_state
@@ -435,7 +437,7 @@ class motion_executor():
                                    (sweep_x, r_file, rank_3), (sweep_x, c_file, rank_3), (sweep_x, l_file, rank_3),
                                    (sweep_x, l_file, rank_2), (sweep_x, c_file, rank_2), (sweep_x, r_file, rank_2),
                                    (sweep_x, r_file, rank_1), (sweep_x, c_file, rank_1), (sweep_x, l_file, rank_1),
-                                   (0, 0, 0))                
+                                   (0.01, 0, 0))                
             #(0,0,0), (0,0,0), (0,0,0),               
             viewpoint_rotations = np.array(( 
                                             (0,0,0), (0,0,0), (0,0,0),
@@ -455,16 +457,14 @@ class motion_executor():
                                    (sweep_x, l_file, rank_4), (sweep_x, r_file, rank_4),
                                    (sweep_x, r_file, rank_3), (sweep_x, l_file, rank_3),
                                    (sweep_x, l_file, rank_2), (sweep_x, r_file, rank_2),
-                                   (0, 0, 0),(0, 0, 0),(0, 0, 0),
-                                   (0, 0, 0),(0, 0, 0),(0, 0, 0),
                                    (0, 0, 0))                
             #(0,0,0), (0,0,0), (0,0,0),               
             viewpoint_rotations = np.array(( 
-                                            (0,0,0), (0,0,0), (0,0,0),
-                                            (0,0,0), (0,0,0), (0,0,0),
-                                            (0,0,0), (0,0,0), (0,0,0),
-                                            (0,0,0), (0,0,0), (0,0,0), 
-                                            (0,0,0)))
+                                            (0,0,0), (0,0,0),
+                                            (0,0,0), (0,0,0), 
+                                            (0,0,0), (0,0,0),
+                                            (0,0,0)
+                                            ))
         viewpoint_rotations = np.deg2rad(viewpoint_rotations)
 
         viewpoint_pose = geometry_msgs.msg.PoseStamped()

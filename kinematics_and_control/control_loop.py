@@ -62,6 +62,7 @@ print("Running setup and calibration...")
 stare_latch = False
 
 #Read in the pick file, set up world model.
+#world_model = WorldModel( os.path.join(os.path.dirname(sys.path[0]),'multiple_items.json'))
 world_model = WorldModel( os.path.join(os.path.dirname(sys.path[0]),'other_team.json'))
 mex = motion_executor()
 
@@ -112,11 +113,24 @@ while (operator_input.lower() != "begin"):
 run_time = time.time() #Start time of the full operation
 state = 'get_target_item'
 print_time = time.time()
-
+resend_time = time.time()
 vacuum_pub_time = time.time()
 
 #The operations run until there is nothing else left on the pick list, or until the time limit has been reached.
 while ((time.time() - run_time) < RUN_TIME_LIMIT) and (len(world_model.pick_list) > 0) and (not rospy.is_shutdown()):
+
+
+    
+    if (((time.time() - resend_time)>RESEND_COMMAND_TIME) and not mex.check_complete()) :
+        print("Resending commaned")
+        mex.go_pose(mex.goal_pose_stamped)
+        resend_time = time.time()
+        
+
+    if mex.new_pose == True:
+        mex.new_pose = False
+        resend_time = time.time()
+
     target_item_pub.publish(bin_items_string)
     if (world_model.viewpoint_toggle):
         NUMBER_OF_VIEWPOINTS = NUMBER_OF_VIEWPOINTS2
